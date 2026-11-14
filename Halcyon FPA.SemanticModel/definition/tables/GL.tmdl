@@ -1,0 +1,101 @@
+/// General ledger journal lines for P&L accounts (synthetic data). Grain: one journal line. Amounts are in local currency with ledger sign (debit positive), so revenue is negative. The accounting period is Period Date, not Posting Date.
+table GL
+
+	/// Journal identifier. Hidden; kept for a possible journal drill-through, to be reviewed after VertiPaq Analyzer.
+	column 'Journal ID'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: Journal ID
+
+	/// Date the line was posted. About 1.5% of lines are late adjustments posted in the month after their period. Hidden; related to Date through an inactive relationship.
+	column 'Posting Date'
+		dataType: dateTime
+		isHidden
+		formatString: dd mmm yyyy
+		summarizeBy: none
+		sourceColumn: Posting Date
+
+	/// Accounting period (first day of the month). Hidden; use the Date table.
+	column 'Period Date'
+		dataType: dateTime
+		isHidden
+		formatString: dd mmm yyyy
+		summarizeBy: none
+		sourceColumn: Period Date
+
+	column 'Entity Key'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Entity Key
+
+	column 'Account Key'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Account Key
+
+	column 'Cost Centre Key'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Cost Centre Key
+
+	/// Customer on revenue lines; -1 (No customer) on all other lines.
+	column 'Customer Key'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Customer Key
+
+	column 'Currency Code'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: Currency Code
+
+	/// Amount in the entity's local currency, ledger sign (debit positive, credit negative). Hidden; use the measures.
+	column 'Amount Local'
+		dataType: decimal
+		isHidden
+		formatString: #,##0.00
+		summarizeBy: none
+		sourceColumn: Amount Local
+
+	/// Journal line description. Hidden; kept for a possible journal drill-through, to be reviewed after VertiPaq Analyzer.
+	column Description
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: Description
+
+	/// System the journal came from.
+	column 'Source System'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Source System
+
+	/// True for late adjustments and for reversal and rebook pairs (which net to zero).
+	column 'Is Adjustment'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		summarizeBy: none
+		sourceColumn: Is Adjustment
+
+	partition GL = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "Fact_GL.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Selected = Table.SelectColumns(Promoted, {"JournalID", "PostingDate", "PeriodDate", "EntityKey", "AccountKey", "CostCentreKey", "CustomerKey", "CurrencyCode", "AmountLocal", "Description", "SourceSystem", "IsAdjustment"}),
+				    Typed = Table.TransformColumnTypes(Selected, {{"JournalID", type text}, {"PostingDate", type date}, {"PeriodDate", type date}, {"EntityKey", Int64.Type}, {"AccountKey", Int64.Type}, {"CostCentreKey", Int64.Type}, {"CustomerKey", Int64.Type}, {"CurrencyCode", type text}, {"AmountLocal", Currency.Type}, {"Description", type text}, {"SourceSystem", type text}, {"IsAdjustment", Int64.Type}}, "en-US"),
+				    NoCustomer = Table.ReplaceValue(Typed, null, -1, Replacer.ReplaceValue, {"CustomerKey"}),
+				    AdjustmentFlag = Table.TransformColumns(NoCustomer, {{"IsAdjustment", each _ = 1, type logical}}),
+				    Renamed = Table.RenameColumns(AdjustmentFlag, {{"JournalID", "Journal ID"}, {"PostingDate", "Posting Date"}, {"PeriodDate", "Period Date"}, {"EntityKey", "Entity Key"}, {"AccountKey", "Account Key"}, {"CostCentreKey", "Cost Centre Key"}, {"CustomerKey", "Customer Key"}, {"CurrencyCode", "Currency Code"}, {"AmountLocal", "Amount Local"}, {"SourceSystem", "Source System"}, {"IsAdjustment", "Is Adjustment"}})
+				in
+				    Renamed
+
+	annotation PBI_ResultType = Table
+

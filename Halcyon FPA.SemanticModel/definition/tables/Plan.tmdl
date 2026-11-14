@@ -1,0 +1,63 @@
+/// Budget and Forecast (synthetic data). Grain: month x scenario x entity x account x cost centre. Budget covers 2024 to 2026; Forecast covers 2026 only. Amounts are in local currency with ledger sign (debit positive). No customer grain.
+table Plan
+	isHidden
+
+	/// Plan month (first day of the month).
+	column 'Period Date'
+		dataType: dateTime
+		isHidden
+		formatString: dd mmm yyyy
+		summarizeBy: none
+		sourceColumn: Period Date
+
+	column 'Scenario Key'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Scenario Key
+
+	column 'Entity Key'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Entity Key
+
+	column 'Account Key'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Account Key
+
+	column 'Cost Centre Key'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Cost Centre Key
+
+	column 'Currency Code'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: Currency Code
+
+	/// Amount in the entity's local currency, ledger sign (debit positive, credit negative). Hidden; use the measures.
+	column 'Amount Local'
+		dataType: decimal
+		isHidden
+		formatString: #,##0.00
+		summarizeBy: none
+		sourceColumn: Amount Local
+
+	partition Plan = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "Fact_Plan.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"PeriodDate", type date}, {"ScenarioKey", Int64.Type}, {"EntityKey", Int64.Type}, {"AccountKey", Int64.Type}, {"CostCentreKey", Int64.Type}, {"CurrencyCode", type text}, {"AmountLocal", Currency.Type}}, "en-US"),
+				    Renamed = Table.RenameColumns(Typed, {{"PeriodDate", "Period Date"}, {"ScenarioKey", "Scenario Key"}, {"EntityKey", "Entity Key"}, {"AccountKey", "Account Key"}, {"CostCentreKey", "Cost Centre Key"}, {"CurrencyCode", "Currency Code"}, {"AmountLocal", "Amount Local"}})
+				in
+				    Renamed
+
+	annotation PBI_ResultType = Table
+

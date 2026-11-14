@@ -1,0 +1,66 @@
+/// Cost centres: one per department and entity (synthetic data).
+table 'Cost Centre'
+
+	column 'Cost Centre Key'
+		dataType: int64
+		isHidden
+		isKey
+		summarizeBy: none
+		sourceColumn: Cost Centre Key
+
+	/// Cost centre code, for example CC-S5-UK01.
+	column 'Cost Centre Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Cost Centre Code
+
+	/// Cost centre name: department and entity code.
+	column 'Cost Centre Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Cost Centre Name
+
+	/// Department, for example Sales or Engineering.
+	column Department
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Department
+
+	/// Business function the department belongs to, for example Sales and Marketing.
+	column 'Function'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Function
+
+	/// Entity that owns the cost centre. Hidden; kept for row-level security only and not related to Entity.
+	column 'Entity Key'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Entity Key
+
+	/// Function > Department > Cost Centre.
+	hierarchy 'Cost Centre Hierarchy'
+
+		level 'Function'
+			column: 'Function'
+
+		level Department
+			column: Department
+
+		level 'Cost Centre Name'
+			column: 'Cost Centre Name'
+
+	partition 'Cost Centre' = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "Dim_CostCentre.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"CostCentreKey", Int64.Type}, {"CostCentreCode", type text}, {"CostCentreName", type text}, {"Department", type text}, {"Function", type text}, {"EntityKey", Int64.Type}}, "en-US"),
+				    Renamed = Table.RenameColumns(Typed, {{"CostCentreKey", "Cost Centre Key"}, {"CostCentreCode", "Cost Centre Code"}, {"CostCentreName", "Cost Centre Name"}, {"EntityKey", "Entity Key"}})
+				in
+				    Renamed
+
+	annotation PBI_ResultType = Table
+

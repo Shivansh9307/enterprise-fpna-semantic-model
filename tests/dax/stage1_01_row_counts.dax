@@ -1,0 +1,19 @@
+// Stage 1 check: row counts against data/expected.json (synthetic data).
+// Customer is expected to be 2,501: 2,500 customers plus the -1 "No customer" row. Date is 1,096 days (2024 to 2026).
+EVALUATE
+ROW (
+    "Fact_GL", COUNTROWS ( 'GL' ),
+    "Fact_Plan", COUNTROWS ( 'Plan' ),
+    "Dim_Account", COUNTROWS ( 'Account' ),
+    "Dim_CostCentre", COUNTROWS ( 'Cost Centre' ),
+    "Dim_Entity", COUNTROWS ( 'Entity' ),
+    "Dim_Customer", COUNTROWS ( 'Customer' ),
+    "Dim_FX", COUNTROWS ( 'FX Rates' ),
+    "Dim_Scenario", COUNTROWS ( 'Scenario' ),
+    "Currency", COUNTROWS ( 'Currency' ),
+    "Date", COUNTROWS ( 'Date' ),
+    "GL lines on No customer", CALCULATE ( COUNTROWS ( 'GL' ), 'Customer'[Customer Key] = -1 ),
+    "GL lines with blank customer", CALCULATE ( COUNTROWS ( 'GL' ), ISBLANK ( 'GL'[Customer Key] ) ),
+    "Last Actual Period", [Last Actual Period],
+    "Days with actuals", CALCULATE ( COUNTROWS ( 'Date' ), 'Date'[Has Actuals] = TRUE )
+)

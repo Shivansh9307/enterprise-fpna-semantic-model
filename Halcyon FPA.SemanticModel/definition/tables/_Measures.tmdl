@@ -1,0 +1,167 @@
+/// Home table for all measures. Figures are synthetic. Sign convention: Actual and Budget use profit-impact sign (revenue positive, costs negative), so they add up at any level and a positive variance is favourable. Named cost measures (Cost of Sales, Operating Expenses, and so on) show positive amounts.
+table _Measures
+
+	/// Sum of GL amounts in local currency, ledger sign (debit positive). Mixes currencies when more than one entity is in scope; used only as an input to GBP conversion.
+	measure 'Actual Local' = SUM ( 'GL'[Amount Local] )
+		formatString: #,##0.00
+		isHidden
+		displayFolder: 0. Base
+
+	/// Sum of Plan amounts (Budget and Forecast) in local currency, ledger sign (debit positive). Mixes currencies and scenarios unless filtered; used only as an input to GBP conversion.
+	measure 'Plan Local' = SUM ( 'Plan'[Amount Local] )
+		formatString: #,##0.00
+		isHidden
+		displayFolder: 0. Base
+
+	/// Last accounting period (first day of the month) that has GL actuals, ignoring all filters.
+	measure 'Last Actual Period' = CALCULATE ( MAX ( 'GL'[Period Date] ), REMOVEFILTERS ( ) )
+		formatString: dd mmm yyyy
+		isHidden
+		displayFolder: 0. Base
+
+	/// Actuals in GBP, ledger sign (debit positive). Converts each month and currency at that month's average rate.
+	measure 'Actual Ledger GBP' =
+			SUMX (
+			    SUMMARIZE ( 'GL', 'Date'[Month Start], 'Currency'[Currency Code] ),
+			    [Actual Local] * CALCULATE ( MAX ( 'FX Rates'[Avg Rate To GBP] ) )
+			)
+		formatString: #,##0
+		isHidden
+		displayFolder: 0. Base
+
+	/// Budget in GBP, ledger sign (debit positive). Converts each month and currency at the budget rate (the January average rate of the year).
+	measure 'Budget Ledger GBP' =
+			CALCULATE (
+			    SUMX (
+			        SUMMARIZE ( 'Plan', 'Date'[Month Start], 'Currency'[Currency Code] ),
+			        [Plan Local] * CALCULATE ( MAX ( 'FX Rates'[Budget Rate To GBP] ) )
+			    ),
+			    'Scenario'[Scenario Name] = "Budget"
+			)
+		formatString: #,##0
+		isHidden
+		displayFolder: 0. Base
+
+	/// Actuals in GBP at average rates, profit-impact sign: revenue positive, costs negative. Adds up at any level; all accounts together give net profit.
+	measure Actual = -1 * [Actual Ledger GBP]
+		formatString: #,##0
+		displayFolder: 1. Scenario
+
+	/// Budget in GBP at budget rates, profit-impact sign: revenue positive, costs negative. Adds up at any level.
+	measure Budget = -1 * [Budget Ledger GBP]
+		formatString: #,##0
+		displayFolder: 1. Scenario
+
+	/// Actual revenue in GBP, positive.
+	measure Revenue = CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] = "Revenue" ) )
+		formatString: #,##0
+		displayFolder: 2. P&L
+
+	/// Actual cost of sales in GBP, shown as a positive cost.
+	measure 'Cost of Sales' = -1 * CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] = "Cost of Sales" ) )
+		formatString: #,##0
+		displayFolder: 2. P&L
+
+	/// Actual gross profit in GBP: revenue less cost of sales.
+	measure 'Gross Profit' =
+			CALCULATE (
+			    [Actual],
+			    KEEPFILTERS ( 'Account'[P&L Group L1] IN { "Revenue", "Cost of Sales" } )
+			)
+		formatString: #,##0
+		displayFolder: 2. P&L
+
+	/// Actual gross profit as a share of revenue.
+	measure 'Gross Margin %' = DIVIDE ( [Gross Profit], [Revenue] )
+		formatString: 0.0%
+		displayFolder: 2. P&L
+
+	/// Actual operating expenses in GBP (Sales and Marketing, Research and Development, General and Administrative), shown as a positive cost.
+	measure 'Operating Expenses' = -1 * CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] = "Operating Expenses" ) )
+		formatString: #,##0
+		displayFolder: 2. P&L
+
+	/// Actual EBITDA in GBP: revenue less cost of sales and operating expenses (accounts flagged In EBITDA).
+	measure EBITDA = CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[In EBITDA] = 1 ) )
+		formatString: #,##0
+		displayFolder: 2. P&L
+
+	/// Actual EBITDA as a share of revenue.
+	measure 'EBITDA Margin %' = DIVIDE ( [EBITDA], [Revenue] )
+		formatString: 0.0%
+		displayFolder: 2. P&L
+
+	/// Actual depreciation and amortisation in GBP, shown as a positive cost.
+	measure 'Depreciation and Amortisation' = -1 * CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] = "Depreciation and Amortisation" ) )
+		formatString: #,##0
+		displayFolder: 2. P&L
+
+	/// Actual operating profit (EBIT) in GBP: EBITDA less depreciation and amortisation.
+	measure 'Operating Profit' =
+			CALCULATE (
+			    [Actual],
+			    KEEPFILTERS ( 'Account'[P&L Group L1] IN { "Revenue", "Cost of Sales", "Operating Expenses", "Depreciation and Amortisation" } )
+			)
+		formatString: #,##0
+		displayFolder: 2. P&L
+
+	/// Actual net finance costs in GBP: interest expense and FX losses less interest income, shown as a positive cost. FX gains and losses are random noise in this synthetic data.
+	measure 'Net Finance Costs' = -1 * CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] = "Finance Items" ) )
+		formatString: #,##0
+		displayFolder: 2. P&L
+
+	/// Actual profit before tax in GBP: operating profit less net finance costs.
+	measure 'Profit Before Tax' = CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] <> "Tax" ) )
+		formatString: #,##0
+		displayFolder: 2. P&L
+
+	/// Actual corporation tax in GBP, shown as a positive cost. A smoothed placeholder in this synthetic data, not a tax computation.
+	measure Tax = -1 * CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] = "Tax" ) )
+		formatString: #,##0
+		displayFolder: 2. P&L
+
+	/// Actual net profit in GBP: all P&L accounts.
+	measure 'Net Profit' = [Actual]
+		formatString: #,##0
+		displayFolder: 2. P&L
+
+	/// Actual net profit as a share of revenue.
+	measure 'Net Margin %' = DIVIDE ( [Net Profit], [Revenue] )
+		formatString: 0.0%
+		displayFolder: 2. P&L
+
+	/// Actual amount of the accounts in scope as a share of total actual revenue, in profit-impact sign (costs show as negative percentages).
+	measure '% of Revenue' = DIVIDE ( [Actual], CALCULATE ( [Revenue], REMOVEFILTERS ( 'Account' ) ) )
+		formatString: 0.0%
+		displayFolder: 2. P&L
+
+	/// Actual value for the P&L Line on rows (Revenue, Cost of Sales, Gross Profit, and so on). Costs are positive, subtotals are profits. Blank unless exactly one P&L Line is in scope.
+	measure 'P&L Value' =
+			SWITCH (
+			    SELECTEDVALUE ( 'P&L Line'[Line Key] ),
+			    1, [Revenue],
+			    2, [Cost of Sales],
+			    3, [Gross Profit],
+			    4, [Operating Expenses],
+			    5, [EBITDA],
+			    6, [Depreciation and Amortisation],
+			    7, [Operating Profit],
+			    8, [Net Finance Costs],
+			    9, [Profit Before Tax],
+			    10, [Tax],
+			    11, [Net Profit]
+			)
+		formatString: #,##0
+		displayFolder: 2. P&L
+
+	column Value
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Value]
+
+	partition _Measures = calculated
+		mode: import
+		source = {1}
+

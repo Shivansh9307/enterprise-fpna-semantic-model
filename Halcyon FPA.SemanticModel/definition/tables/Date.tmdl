@@ -1,0 +1,122 @@
+/// Calendar, one row per day from 1 Jan 2024 to 31 Dec 2026. The fiscal year equals the calendar year. Marked as the date table.
+table Date
+	dataCategory: Time
+
+	/// Calendar date.
+	column Date
+		dataType: dateTime
+		isKey
+		formatString: dd mmm yyyy
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+	/// Calendar year, for example 2025.
+	column Year
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Year]
+
+	/// Fiscal year label, for example FY2025. Equal to the calendar year.
+	column 'Fiscal Year'
+		dataType: string
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal Year]
+
+	/// Quarter of the year, Q1 to Q4.
+	column Quarter
+		dataType: string
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Quarter]
+
+	/// Year and quarter, for example 2025 Q3.
+	column 'Year Quarter'
+		dataType: string
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Year Quarter]
+
+	column 'Month Number'
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Month Number]
+
+	/// Month name, Jan to Dec. Sorted by month number.
+	column Month
+		dataType: string
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Month]
+		sortByColumn: 'Month Number'
+
+	/// Month and year, for example Jun 2025. Sorted chronologically.
+	column 'Year Month'
+		dataType: string
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Year Month]
+		sortByColumn: 'Year Month Key'
+
+	column 'Year Month Key'
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Year Month Key]
+
+	/// First day of the month. The fact tables hold one period per month, dated the first.
+	column 'Month Start'
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Month Start]
+
+	/// True for dates up to the end of the last month that has GL actuals.
+	column 'Has Actuals'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Has Actuals]
+
+	/// Year > Quarter > Month.
+	hierarchy Calendar
+
+		level Year
+			column: Year
+
+		level Quarter
+			column: Quarter
+
+		level Month
+			column: Month
+
+	partition Date = calculated
+		mode: import
+		source = ```
+				VAR _LastActualDate = EOMONTH ( MAX ( 'GL'[Period Date] ), 0 )
+				RETURN
+				    ADDCOLUMNS (
+				        CALENDAR ( DATE ( 2024, 1, 1 ), DATE ( 2026, 12, 31 ) ),
+				        "Year", YEAR ( [Date] ),
+				        "Fiscal Year", "FY" & YEAR ( [Date] ),
+				        "Quarter", "Q" & QUARTER ( [Date] ),
+				        "Year Quarter", YEAR ( [Date] ) & " Q" & QUARTER ( [Date] ),
+				        "Month Number", MONTH ( [Date] ),
+				        "Month", FORMAT ( [Date], "mmm" ),
+				        "Year Month", FORMAT ( [Date], "mmm yyyy" ),
+				        "Year Month Key", YEAR ( [Date] ) * 100 + MONTH ( [Date] ),
+				        "Month Start", DATE ( YEAR ( [Date] ), MONTH ( [Date] ), 1 ),
+				        "Has Actuals", [Date] <= _LastActualDate
+				    )
+				```
+

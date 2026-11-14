@@ -1,0 +1,61 @@
+relationship 19233aa3-1214-4bb8-9a2d-1f60eab7c5ee
+	fromColumn: GL.'Period Date'
+	toColumn: Date.Date
+
+relationship 695e8771-d8ee-4abf-bd42-21abb183fe50
+	isActive: false
+	fromColumn: GL.'Posting Date'
+	toColumn: Date.Date
+
+relationship 45c7b5c0-0be7-4460-b1a8-9f44b347d60e
+	fromColumn: GL.'Entity Key'
+	toColumn: Entity.'Entity Key'
+
+relationship af9024b2-5603-4d03-9948-cfada1c3427a
+	fromColumn: GL.'Account Key'
+	toColumn: Account.'Account Key'
+
+relationship a207bb22-cbaf-482f-89e6-374f5b44a89c
+	fromColumn: GL.'Cost Centre Key'
+	toColumn: 'Cost Centre'.'Cost Centre Key'
+
+relationship eb2eae0e-2943-45b9-b10b-090777ca53cd
+	fromColumn: GL.'Customer Key'
+	toColumn: Customer.'Customer Key'
+
+relationship 83434c02-4b1e-49ec-9169-66b0ee0986b8
+	fromColumn: GL.'Currency Code'
+	toColumn: Currency.'Currency Code'
+
+relationship 2158f1f6-8949-48c2-8f4a-cd73b1f6b300
+	fromColumn: Plan.'Period Date'
+	toColumn: Date.Date
+
+relationship 5da0a58c-3bdb-4d72-b712-6cba996e281a
+	fromColumn: Plan.'Entity Key'
+	toColumn: Entity.'Entity Key'
+
+relationship 236786c3-9e01-459d-8137-09b69328ccf9
+	fromColumn: Plan.'Account Key'
+	toColumn: Account.'Account Key'
+
+relationship 89d1a2a9-1f69-4cda-80eb-d530834e6935
+	fromColumn: Plan.'Cost Centre Key'
+	toColumn: 'Cost Centre'.'Cost Centre Key'
+
+relationship 959867aa-efbf-441a-bdfe-5954bc7991ae
+	fromColumn: Plan.'Currency Code'
+	toColumn: Currency.'Currency Code'
+
+relationship 064ea00e-97bb-4bb4-85d3-a659c44a6a3f
+	fromColumn: Plan.'Scenario Key'
+	toColumn: Scenario.'Scenario Key'
+
+relationship 38322616-fcdf-465f-869f-2d799f6acd05
+	fromColumn: 'FX Rates'.'Period Date'
+	toColumn: Date.Date
+
+relationship f7b86eae-7476-4f1f-9954-a2c88a680ecf
+	fromColumn: 'FX Rates'.'Currency Code'
+	toColumn: Currency.'Currency Code'
+

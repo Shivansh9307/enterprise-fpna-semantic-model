@@ -1,0 +1,9 @@
+// Stage 1 check: FY2025 actual revenue by entity, synthetic GBP, against fy2025_actual_revenue_by_entity_gbp in data/expected.json.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Entity'[Entity Code],
+    TREATAS ( { 2025 }, 'Date'[Year] ),
+    "revenue_gbp", [Revenue],
+    "ebitda_gbp", [EBITDA]
+)
+ORDER BY 'Entity'[Entity Code]

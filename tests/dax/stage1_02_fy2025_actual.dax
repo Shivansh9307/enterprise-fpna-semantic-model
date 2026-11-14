@@ -1,0 +1,13 @@
+// Stage 1 check: FY2025 actual headline numbers, synthetic GBP, against fy2025_actual in data/expected.json.
+EVALUATE
+CALCULATETABLE (
+    ROW (
+        "revenue_gbp", [Revenue],
+        "cost_of_sales_gbp", [Cost of Sales],
+        "gross_profit_gbp", [Gross Profit],
+        "gross_margin_pct", [Gross Margin %] * 100,
+        "ebitda_gbp", [EBITDA],
+        "ebitda_margin_pct", [EBITDA Margin %] * 100
+    ),
+    'Date'[Year] = 2025
+)

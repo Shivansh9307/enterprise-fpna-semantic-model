@@ -1,0 +1,10 @@
+// Stage 1 check: FY2025 actual P&L statement through the P&L Line layout table, synthetic GBP.
+// Internal consistency only (expected.json stops at EBITDA): subtotals must equal the lines above them.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Line'[Line Key],
+    'P&L Line'[Line],
+    TREATAS ( { 2025 }, 'Date'[Year] ),
+    "value_gbp", [P&L Value]
+)
+ORDER BY 'P&L Line'[Line Key]

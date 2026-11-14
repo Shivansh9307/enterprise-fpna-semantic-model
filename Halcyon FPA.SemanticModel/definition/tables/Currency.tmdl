@@ -1,0 +1,26 @@
+/// Local currencies (GBP, USD, EUR, INR). Hidden; links the fact tables to FX Rates. Use Entity[Currency] in reports.
+table Currency
+	isHidden
+
+	column 'Currency Code'
+		dataType: string
+		isHidden
+		isKey
+		summarizeBy: none
+		sourceColumn: Currency Code
+
+	partition Currency = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "Dim_FX.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Selected = Table.SelectColumns(Promoted, {"CurrencyCode"}),
+				    Typed = Table.TransformColumnTypes(Selected, {{"CurrencyCode", type text}}, "en-US"),
+				    Distinct = Table.Distinct(Typed),
+				    Renamed = Table.RenameColumns(Distinct, {{"CurrencyCode", "Currency Code"}})
+				in
+				    Renamed
+
+	annotation PBI_ResultType = Table
+

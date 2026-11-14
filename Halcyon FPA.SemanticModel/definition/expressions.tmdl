@@ -1,0 +1,5 @@
+/// Folder that holds the synthetic CSVs, with a trailing backslash. The committed value is a placeholder: set it to your local data folder (Transform data > Edit parameters) before refreshing.
+expression DataFolder = "C:\REPLACE_WITH_REPO_PATH\data\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+	annotation PBI_ResultType = Text
+

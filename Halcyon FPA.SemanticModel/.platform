@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Halcyon FPA"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "bb623c00-9a04-45ee-b762-a7492a3cc48d"
+  }
+}

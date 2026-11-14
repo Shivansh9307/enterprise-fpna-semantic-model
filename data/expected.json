@@ -1,0 +1,61 @@
+{
+  "note": "SYNTHETIC DATA. GBP = AmountLocal x AvgRateToGBP (actuals) or BudgetRateToGBP (budget). Profit = -SUM(AmountLocal).",
+  "seed": 20261114,
+  "scale": 1.0,
+  "row_counts": {
+    "Dim_Entity": 4,
+    "Dim_CostCentre": 31,
+    "Dim_Account": 30,
+    "Dim_Scenario": 3,
+    "Dim_Customer": 2500,
+    "Dim_FX": 144,
+    "Dim_UserEntityMap": 12,
+    "Fact_GL": 307697,
+    "Fact_Plan": 4992
+  },
+  "fy2025_actual": {
+    "revenue_gbp": 52245253.15,
+    "cost_of_sales_gbp": 17011644.99,
+    "gross_profit_gbp": 35233608.16,
+    "gross_margin_pct": 67.4389,
+    "opex_by_l2_gbp": {
+      "General and Administrative": 6801900.36,
+      "Research and Development": 11443248.32,
+      "Sales and Marketing": 12269945.53
+    },
+    "ebitda_gbp": 4718513.95,
+    "ebitda_margin_pct": 9.0315
+  },
+  "fy2025_budget": {
+    "revenue_gbp": 55569361.33,
+    "cost_of_sales_gbp": 16118823.73,
+    "gross_profit_gbp": 39450537.6,
+    "gross_margin_pct": 70.9933,
+    "opex_by_l2_gbp": {
+      "General and Administrative": 6543133.09,
+      "Research and Development": 11196096.5,
+      "Sales and Marketing": 11978683.13
+    },
+    "ebitda_gbp": 9732624.88,
+    "ebitda_margin_pct": 17.5144
+  },
+  "ytd_oct2026_actual": {
+    "revenue_gbp": 52093804.53,
+    "cost_of_sales_gbp": 15235897.92,
+    "gross_profit_gbp": 36857906.61,
+    "gross_margin_pct": 70.753,
+    "opex_by_l2_gbp": {
+      "General and Administrative": 5971890.51,
+      "Research and Development": 10335616.44,
+      "Sales and Marketing": 11269925.12
+    },
+    "ebitda_gbp": 9280474.54,
+    "ebitda_margin_pct": 17.8149
+  },
+  "fy2025_actual_revenue_by_entity_gbp": {
+    "UK01": 18379759.35,
+    "US01": 21044536.12,
+    "DE01": 7557971.55,
+    "IN01": 5262986.12
+  }
+}

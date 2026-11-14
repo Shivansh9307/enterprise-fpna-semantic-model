@@ -1,0 +1,14 @@
+# Regenerable synthetic data: rebuild with python tools/generate_data.py --out data
+data/*.csv
+
+# Power BI local state
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+
+# Claude Code and tooling
+.claude/
+CLAUDE.md
+screenshots/
+.venv/
+__pycache__/
+*.pyc

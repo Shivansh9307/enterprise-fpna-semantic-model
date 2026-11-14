@@ -1,0 +1,62 @@
+/// Customers (synthetic, fictional names). Only revenue lines carry a customer; every other GL line maps to the -1 "No customer" row.
+table Customer
+
+	column 'Customer Key'
+		dataType: int64
+		isHidden
+		isKey
+		summarizeBy: none
+		sourceColumn: Customer Key
+
+	/// Customer name (fictional).
+	column 'Customer Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Customer Name
+
+	/// Customer size segment.
+	column Segment
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Segment
+
+	/// Customer industry.
+	column Industry
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Industry
+
+	/// Entity that bills the customer. Hidden; kept for row-level security only and not related to Entity.
+	column 'Entity Key'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Entity Key
+
+	/// Customer country.
+	column Country
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Country
+
+	/// First month the customer appears in the data. Customers that predate 2024 show Jan 2024.
+	column 'Start Month'
+		dataType: dateTime
+		formatString: mmm yyyy
+		summarizeBy: none
+		sourceColumn: Start Month
+
+	partition Customer = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "Dim_Customer.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"CustomerKey", Int64.Type}, {"CustomerName", type text}, {"Segment", type text}, {"Industry", type text}, {"EntityKey", Int64.Type}, {"Country", type text}, {"StartMonth", type date}}, "en-US"),
+				    NoCustomer = Table.InsertRows(Typed, 0, {[CustomerKey = -1, CustomerName = "No customer", Segment = "Not applicable", Industry = "Not applicable", EntityKey = null, Country = "Not applicable", StartMonth = null]}),
+				    Renamed = Table.RenameColumns(NoCustomer, {{"CustomerKey", "Customer Key"}, {"CustomerName", "Customer Name"}, {"EntityKey", "Entity Key"}, {"StartMonth", "Start Month"}})
+				in
+				    Renamed
+
+	annotation PBI_ResultType = Table
+

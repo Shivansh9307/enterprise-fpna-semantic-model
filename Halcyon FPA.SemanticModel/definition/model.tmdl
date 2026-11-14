@@ -1,0 +1,26 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["DataFolder","GL","Plan","FX Rates","Account","Entity","Cost Centre","Customer","Currency","Scenario"]
+
+ref table _Measures
+ref table GL
+ref table Plan
+ref table 'FX Rates'
+ref table Date
+ref table Account
+ref table Entity
+ref table 'Cost Centre'
+ref table Customer
+ref table Currency
+ref table Scenario
+ref table 'P&L Line'
+

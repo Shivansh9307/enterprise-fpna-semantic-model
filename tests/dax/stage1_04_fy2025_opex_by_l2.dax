@@ -1,0 +1,11 @@
+// Stage 1 check: FY2025 operating expenses by P&L Group L2, actual and budget, synthetic GBP,
+// against opex_by_l2_gbp in fy2025_actual and fy2025_budget in data/expected.json.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Account'[P&L Group L2],
+    TREATAS ( { 2025 }, 'Date'[Year] ),
+    TREATAS ( { "Operating Expenses" }, 'Account'[P&L Group L1] ),
+    "actual_opex_gbp", [Operating Expenses],
+    "budget_opex_gbp", -1 * [Budget]
+)
+ORDER BY 'Account'[P&L Group L2]

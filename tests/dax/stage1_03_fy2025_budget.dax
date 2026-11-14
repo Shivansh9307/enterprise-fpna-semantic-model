@@ -1,0 +1,19 @@
+// Stage 1 check: FY2025 budget headline numbers, synthetic GBP at budget rates, against fy2025_budget in data/expected.json.
+// Budget line measures arrive in stage 2, so the lines are defined here from [Budget] (profit-impact sign).
+DEFINE
+    MEASURE '_Measures'[Budget Revenue] = CALCULATE ( [Budget], 'Account'[P&L Group L1] = "Revenue" )
+    MEASURE '_Measures'[Budget Cost of Sales] = -1 * CALCULATE ( [Budget], 'Account'[P&L Group L1] = "Cost of Sales" )
+    MEASURE '_Measures'[Budget Gross Profit] = CALCULATE ( [Budget], 'Account'[P&L Group L1] IN { "Revenue", "Cost of Sales" } )
+    MEASURE '_Measures'[Budget EBITDA] = CALCULATE ( [Budget], 'Account'[In EBITDA] = 1 )
+EVALUATE
+CALCULATETABLE (
+    ROW (
+        "revenue_gbp", [Budget Revenue],
+        "cost_of_sales_gbp", [Budget Cost of Sales],
+        "gross_profit_gbp", [Budget Gross Profit],
+        "gross_margin_pct", DIVIDE ( [Budget Gross Profit], [Budget Revenue] ) * 100,
+        "ebitda_gbp", [Budget EBITDA],
+        "ebitda_margin_pct", DIVIDE ( [Budget EBITDA], [Budget Revenue] ) * 100
+    ),
+    'Date'[Year] = 2025
+)

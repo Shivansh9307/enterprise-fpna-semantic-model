@@ -1,0 +1,51 @@
+/// Layout rows for the P&L statement, including subtotals. Disconnected by design: use Line on rows with the measure P&L Value.
+table 'P&L Line'
+
+	column 'Line Key'
+		dataType: int64
+		isHidden
+		isKey
+		formatString: 0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Line Key]
+
+	/// P&L statement line, in statement order. Use with the measure P&L Value.
+	column Line
+		dataType: string
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Line]
+		sortByColumn: 'Line Key'
+
+	/// True for subtotal lines (Gross Profit, EBITDA, Operating Profit, Profit Before Tax, Net Profit). Use for bold formatting.
+	column 'Is Subtotal'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Is Subtotal]
+
+	partition 'P&L Line' = calculated
+		mode: import
+		source = ```
+				DATATABLE (
+				    "Line Key", INTEGER,
+				    "Line", STRING,
+				    "Is Subtotal", BOOLEAN,
+				    {
+				        { 1, "Revenue", FALSE },
+				        { 2, "Cost of Sales", FALSE },
+				        { 3, "Gross Profit", TRUE },
+				        { 4, "Operating Expenses", FALSE },
+				        { 5, "EBITDA", TRUE },
+				        { 6, "Depreciation and Amortisation", FALSE },
+				        { 7, "Operating Profit", TRUE },
+				        { 8, "Net Finance Costs", FALSE },
+				        { 9, "Profit Before Tax", TRUE },
+				        { 10, "Tax", FALSE },
+				        { 11, "Net Profit", TRUE }
+				    }
+				)
+				```
+

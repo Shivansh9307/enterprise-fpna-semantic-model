@@ -1,0 +1,65 @@
+/// Legal entities of the fictional Halcyon Group (synthetic data). The security dimension.
+table Entity
+
+	column 'Entity Key'
+		dataType: int64
+		isHidden
+		isKey
+		summarizeBy: none
+		sourceColumn: Entity Key
+
+	/// Short entity code, for example UK01.
+	column 'Entity Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Entity Code
+
+	/// Legal entity name.
+	column 'Entity Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Entity Name
+
+	/// Country of the entity.
+	column Country
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Country
+
+	/// Local (functional) currency of the entity.
+	column Currency
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Currency
+
+	/// Reporting region: EMEA, Americas or APAC.
+	column Region
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Region
+
+	/// Region > Country > Entity.
+	hierarchy 'Entity Hierarchy'
+
+		level Region
+			column: Region
+
+		level Country
+			column: Country
+
+		level 'Entity Name'
+			column: 'Entity Name'
+
+	partition Entity = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "Dim_Entity.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"EntityKey", Int64.Type}, {"EntityCode", type text}, {"EntityName", type text}, {"Country", type text}, {"Currency", type text}, {"Region", type text}}, "en-US"),
+				    Renamed = Table.RenameColumns(Typed, {{"EntityKey", "Entity Key"}, {"EntityCode", "Entity Code"}, {"EntityName", "Entity Name"}})
+				in
+				    Renamed
+
+	annotation PBI_ResultType = Table
+

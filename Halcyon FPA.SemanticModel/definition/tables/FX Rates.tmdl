@@ -1,0 +1,48 @@
+/// Monthly exchange rates, local currency to GBP (synthetic data). Grain: month x currency. GBP amount = local amount x rate. Hidden; used only by the conversion measures.
+table 'FX Rates'
+	isHidden
+
+	/// Rate month (first day of the month).
+	column 'Period Date'
+		dataType: dateTime
+		isHidden
+		formatString: dd mmm yyyy
+		summarizeBy: none
+		sourceColumn: Period Date
+
+	column 'Currency Code'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: Currency Code
+
+	/// Average rate of the month, local to GBP. Converts actuals.
+	column 'Avg Rate To GBP'
+		dataType: double
+		isHidden
+		formatString: 0.000000
+		summarizeBy: none
+		sourceColumn: Avg Rate To GBP
+
+	/// Budget rate, local to GBP: fixed at the January average rate of each year. Converts the budget.
+	column 'Budget Rate To GBP'
+		dataType: double
+		isHidden
+		formatString: 0.000000
+		summarizeBy: none
+		sourceColumn: Budget Rate To GBP
+
+	partition 'FX Rates' = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "Dim_FX.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Selected = Table.SelectColumns(Promoted, {"PeriodDate", "CurrencyCode", "AvgRateToGBP", "BudgetRateToGBP"}),
+				    Typed = Table.TransformColumnTypes(Selected, {{"PeriodDate", type date}, {"CurrencyCode", type text}, {"AvgRateToGBP", type number}, {"BudgetRateToGBP", type number}}, "en-US"),
+				    Renamed = Table.RenameColumns(Typed, {{"PeriodDate", "Period Date"}, {"CurrencyCode", "Currency Code"}, {"AvgRateToGBP", "Avg Rate To GBP"}, {"BudgetRateToGBP", "Budget Rate To GBP"}})
+				in
+				    Renamed
+
+	annotation PBI_ResultType = Table
+

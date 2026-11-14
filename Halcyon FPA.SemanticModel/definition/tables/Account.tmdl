@@ -1,0 +1,102 @@
+/// Chart of accounts with the P&L hierarchy (synthetic data). P&L accounts only: there is no balance sheet.
+table Account
+
+	column 'Account Key'
+		dataType: int64
+		isHidden
+		isKey
+		summarizeBy: none
+		sourceColumn: Account Key
+
+	/// Account number, for example 4010.
+	column 'Account Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Account Code
+
+	/// Account name. Sorted in P&L order.
+	column 'Account Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Account Name
+		sortByColumn: 'Sort Order'
+
+	/// Top P&L group: Revenue, Cost of Sales, Operating Expenses, Depreciation and Amortisation, Finance Items, Tax. Sorted in P&L order.
+	column 'P&L Group L1'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: P&L Group L1
+		sortByColumn: 'L1 Sort'
+
+	/// Second P&L group, for example Recurring Revenue or Sales and Marketing. Sorted in P&L order.
+	column 'P&L Group L2'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: P&L Group L2
+		sortByColumn: 'L2 Sort'
+
+	/// Department that normally owns the account.
+	column 'Default Department'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Default Department
+
+	/// -1 for credit-nature accounts (revenue, interest income), +1 otherwise. Hidden.
+	column 'Natural Sign'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Natural Sign
+
+	/// 1 for revenue, cost of sales and operating expenses; 0 for depreciation, amortisation, finance items and tax. Hidden; used by the EBITDA measures.
+	column 'In EBITDA'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: In EBITDA
+
+	column 'Sort Order'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Sort Order
+
+	column 'L1 Sort'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: L1 Sort
+
+	column 'L2 Sort'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: L2 Sort
+
+	/// P&L Group L1 > P&L Group L2 > Account.
+	hierarchy 'Account Hierarchy'
+
+		level 'P&L Group L1'
+			column: 'P&L Group L1'
+
+		level 'P&L Group L2'
+			column: 'P&L Group L2'
+
+		level 'Account Name'
+			column: 'Account Name'
+
+	partition Account = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "Dim_Account.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"AccountKey", Int64.Type}, {"AccountCode", type text}, {"AccountName", type text}, {"PLGroupL1", type text}, {"PLGroupL2", type text}, {"DefaultDepartment", type text}, {"NaturalSign", Int64.Type}, {"InEBITDA", Int64.Type}, {"SortOrder", Int64.Type}}, "en-US"),
+				    L1Sort = Table.AddColumn(Typed, "L1 Sort", (r) => List.Min(Table.SelectRows(Typed, each [PLGroupL1] = r[PLGroupL1])[SortOrder]), Int64.Type),
+				    L2Sort = Table.AddColumn(L1Sort, "L2 Sort", (r) => List.Min(Table.SelectRows(Typed, each [PLGroupL2] = r[PLGroupL2])[SortOrder]), Int64.Type),
+				    Renamed = Table.RenameColumns(L2Sort, {{"AccountKey", "Account Key"}, {"AccountCode", "Account Code"}, {"AccountName", "Account Name"}, {"PLGroupL1", "P&L Group L1"}, {"PLGroupL2", "P&L Group L2"}, {"DefaultDepartment", "Default Department"}, {"NaturalSign", "Natural Sign"}, {"InEBITDA", "In EBITDA"}, {"SortOrder", "Sort Order"}})
+				in
+				    Renamed
+
+	annotation PBI_ResultType = Table
+
