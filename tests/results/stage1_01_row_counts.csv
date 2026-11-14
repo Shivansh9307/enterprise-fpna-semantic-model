@@ -1,0 +1,2 @@
+Fact_GL,Fact_Plan,Dim_Account,Dim_CostCentre,Dim_Entity,Dim_Customer,Dim_FX,Dim_Scenario,Currency,Date,GL lines on No customer,GL lines with blank customer,Last Actual Period,Days with actuals
+307697,4992,30,31,4,2501,144,3,4,1096,28271,,2026-10-01 00:00:00.000,1035

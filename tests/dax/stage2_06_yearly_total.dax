@@ -1,0 +1,28 @@
+// Stage 2 check: every time-intelligence and budget-variance measure by year, all accounts and entities (tests the part-finished year 2026). Synthetic GBP.
+// Compared with an independent pandas recomputation by tools/verify_measures.py.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Date'[Year],
+    "Actual", [Actual],
+    "Budget", [Budget],
+    "Budget (Closed Periods)", [Budget (Closed Periods)],
+    "Actual MTD", [Actual MTD],
+    "Actual QTD", [Actual QTD],
+    "Actual YTD", [Actual YTD],
+    "Actual PY", [Actual PY],
+    "Actual PY YTD", [Actual PY YTD],
+    "YoY", [YoY],
+    "YoY %", [YoY %],
+    "YTD YoY %", [YTD YoY %],
+    "Actual R12M", [Actual R12M],
+    "Actual R12M PY", [Actual R12M PY],
+    "Budget YTD", [Budget YTD],
+    "Budget PY", [Budget PY],
+    "Var to Budget", [Var to Budget],
+    "Var to Budget %", [Var to Budget %],
+    "Var to Budget YTD", [Var to Budget YTD],
+    "Var to Budget YTD %", [Var to Budget YTD %],
+    "Revenue Var to Budget", [Revenue Var to Budget],
+    "EBITDA Var to Budget", [EBITDA Var to Budget]
+)
+ORDER BY 'Date'[Year]

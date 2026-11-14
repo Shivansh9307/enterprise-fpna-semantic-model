@@ -1,0 +1,10 @@
+// Stage 2 check: actual operating expenses year to date at October 2026 by P&L Group L2, synthetic GBP,
+// against opex_by_l2_gbp in ytd_oct2026_actual in data/expected.json.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Account'[P&L Group L2],
+    TREATAS ( { 202610 }, 'Date'[Year Month Key] ),
+    TREATAS ( { "Operating Expenses" }, 'Account'[P&L Group L1] ),
+    "actual_opex_ytd_gbp", -1 * [Actual YTD]
+)
+ORDER BY 'Account'[P&L Group L2]

@@ -21,11 +21,23 @@ This README is a stub. It will be completed when the build is finished.
 | Stage | Scope | State |
 |---|---|---|
 | 1 | Project scaffold, star schema, date table, relationships, hierarchies, base and P&L measures | Tested here: FY2025 actual and budget numbers in `data/expected.json` reproduced by the queries in `tests/dax/stage1_*.dax` |
-| 2 | Time intelligence and budget variance | Not yet built |
+| 2 | Time intelligence and budget variance | Tested here: year-to-date Oct 2026 numbers in `data/expected.json` reproduced; 2,583 measure values (by month, quarter and year, on three slices) match an independent pandas recomputation in `tools/verify_measures.py` |
 | 3 | Forecast and constant currency | Not yet built |
 | 4 | Row-level security | Not yet built |
 | 5 | Performance and best-practice analysis | Not yet run |
 | 6 | Report pages | Not yet built |
+
+## Rerunning the checks
+
+With `Halcyon FPA.pbip` open in Power BI Desktop:
+
+```
+powershell.exe -NoProfile -File tools\run_dax.ps1 -Filter "stage*.dax" -Refresh
+.venv\Scripts\python tools\verify_measures.py
+```
+
+The first command runs every query in `tests/dax` against the open model and writes the results to `tests/results`.
+The second compares those results with `data/expected.json` and with a pandas recomputation from the CSVs.
 
 ## Tools used for the checks
 

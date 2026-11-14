@@ -1,0 +1,19 @@
+// Stage 2 check: actual year to date at October 2026, synthetic GBP, against ytd_oct2026_actual in data/expected.json.
+// The context is the single month Oct 2026, so the numbers come from the time-intelligence measure [Actual YTD], not from a year filter.
+DEFINE
+    MEASURE '_Measures'[YTD Revenue] = CALCULATE ( [Actual YTD], 'Account'[P&L Group L1] = "Revenue" )
+    MEASURE '_Measures'[YTD Cost of Sales] = -1 * CALCULATE ( [Actual YTD], 'Account'[P&L Group L1] = "Cost of Sales" )
+    MEASURE '_Measures'[YTD Gross Profit] = CALCULATE ( [Actual YTD], 'Account'[P&L Group L1] IN { "Revenue", "Cost of Sales" } )
+    MEASURE '_Measures'[YTD EBITDA] = CALCULATE ( [Actual YTD], 'Account'[In EBITDA] = 1 )
+EVALUATE
+CALCULATETABLE (
+    ROW (
+        "revenue_gbp", [YTD Revenue],
+        "cost_of_sales_gbp", [YTD Cost of Sales],
+        "gross_profit_gbp", [YTD Gross Profit],
+        "gross_margin_pct", DIVIDE ( [YTD Gross Profit], [YTD Revenue] ) * 100,
+        "ebitda_gbp", [YTD EBITDA],
+        "ebitda_margin_pct", DIVIDE ( [YTD EBITDA], [YTD Revenue] ) * 100
+    ),
+    'Date'[Year Month Key] = 202610
+)

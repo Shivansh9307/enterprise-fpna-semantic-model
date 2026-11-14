@@ -154,6 +154,153 @@ table _Measures
 		formatString: #,##0
 		displayFolder: 2. P&L
 
+	/// Budget in GBP for closed periods only (months that have actuals), profit-impact sign. Use it to compare like for like with Actual when the period includes future months.
+	measure 'Budget (Closed Periods)' = CALCULATE ( [Budget], KEEPFILTERS ( 'Date'[Has Actuals] = TRUE ) )
+		formatString: #,##0
+		displayFolder: 1. Scenario
+
+	/// Actual month to date, up to the last date in the period that has actuals. The ledger holds one period per month, so this equals the full month. Blank for future periods.
+	measure 'Actual MTD' =
+			CALCULATE (
+			    [Actual],
+			    CALCULATETABLE ( DATESMTD ( 'Date'[Date] ), 'Date'[Has Actuals] = TRUE )
+			)
+		formatString: #,##0
+		displayFolder: 3. Time Intelligence
+
+	/// Actual quarter to date, up to the last date in the period that has actuals. Blank for future periods.
+	measure 'Actual QTD' =
+			CALCULATE (
+			    [Actual],
+			    CALCULATETABLE ( DATESQTD ( 'Date'[Date] ), 'Date'[Has Actuals] = TRUE )
+			)
+		formatString: #,##0
+		displayFolder: 3. Time Intelligence
+
+	/// Actual year to date (the fiscal year is the calendar year), up to the last date in the period that has actuals. Blank for future periods.
+	measure 'Actual YTD' =
+			CALCULATE (
+			    [Actual],
+			    CALCULATETABLE ( DATESYTD ( 'Date'[Date] ), 'Date'[Has Actuals] = TRUE )
+			)
+		formatString: #,##0
+		displayFolder: 3. Time Intelligence
+
+	/// Actual for the same period one year earlier, like for like: only the dates that have actuals in the current period are shifted back, so a part-finished year is compared with the same months of the prior year. Blank for 2024 and for future periods.
+	measure 'Actual PY' =
+			CALCULATE (
+			    [Actual],
+			    CALCULATETABLE ( DATEADD ( 'Date'[Date], -1, YEAR ), 'Date'[Has Actuals] = TRUE )
+			)
+		formatString: #,##0
+		displayFolder: 3. Time Intelligence
+
+	/// Actual year to date for the prior year, to the same point in the year as Actual YTD.
+	measure 'Actual PY YTD' =
+			CALCULATE (
+			    [Actual],
+			    DATEADD (
+			        CALCULATETABLE ( DATESYTD ( 'Date'[Date] ), 'Date'[Has Actuals] = TRUE ),
+			        -1,
+			        YEAR
+			    )
+			)
+		formatString: #,##0
+		displayFolder: 3. Time Intelligence
+
+	/// Year-on-year change: Actual less Actual PY, profit-impact sign, so positive is favourable (more revenue or less cost). Blank when either side is blank.
+	measure YoY =
+			VAR _Actual = [Actual]
+			VAR _PriorYear = [Actual PY]
+			RETURN
+			    IF ( NOT ISBLANK ( _Actual ) && NOT ISBLANK ( _PriorYear ), _Actual - _PriorYear )
+		formatString: #,##0
+		displayFolder: 3. Time Intelligence
+
+	/// Year-on-year change as a share of the absolute prior-year amount. Positive is favourable for revenue and for costs.
+	measure 'YoY %' = DIVIDE ( [YoY], ABS ( [Actual PY] ) )
+		formatString: 0.0%
+		displayFolder: 3. Time Intelligence
+
+	/// Year-to-date change against the prior year to date, as a share of the absolute prior-year amount. Positive is favourable.
+	measure 'YTD YoY %' =
+			VAR _PriorYear = [Actual PY YTD]
+			RETURN
+			    DIVIDE ( [Actual YTD] - _PriorYear, ABS ( _PriorYear ) )
+		formatString: 0.0%
+		displayFolder: 3. Time Intelligence
+
+	/// Actual for the 12 months ending with the last month in the period that has actuals. Blank where fewer than 12 months of history exist and for future periods.
+	measure 'Actual R12M' =
+			VAR _LastDate = CALCULATE ( MAX ( 'Date'[Date] ), 'Date'[Has Actuals] = TRUE )
+			VAR _FirstDate = CALCULATE ( MIN ( 'Date'[Date] ), REMOVEFILTERS ( ) )
+			VAR _Start = EOMONTH ( _LastDate, -12 ) + 1
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _LastDate ) && _Start >= _FirstDate,
+			        CALCULATE ( [Actual], DATESBETWEEN ( 'Date'[Date], _Start, _LastDate ) )
+			    )
+		formatString: #,##0
+		displayFolder: 3. Time Intelligence
+
+	/// Actual for the 12 months that end one year before the last month in the period that has actuals. Blank where fewer than 24 months of history exist.
+	measure 'Actual R12M PY' =
+			VAR _LastDate = CALCULATE ( MAX ( 'Date'[Date] ), 'Date'[Has Actuals] = TRUE )
+			VAR _FirstDate = CALCULATE ( MIN ( 'Date'[Date] ), REMOVEFILTERS ( ) )
+			VAR _Start = EOMONTH ( _LastDate, -24 ) + 1
+			VAR _End = EOMONTH ( _LastDate, -12 )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _LastDate ) && _Start >= _FirstDate,
+			        CALCULATE ( [Actual], DATESBETWEEN ( 'Date'[Date], _Start, _End ) )
+			    )
+		formatString: #,##0
+		displayFolder: 3. Time Intelligence
+
+	/// Budget year to date, up to the last date in the period that has actuals, so it compares like for like with Actual YTD. Blank for future periods.
+	measure 'Budget YTD' =
+			CALCULATE (
+			    [Budget],
+			    CALCULATETABLE ( DATESYTD ( 'Date'[Date] ), 'Date'[Has Actuals] = TRUE )
+			)
+		formatString: #,##0
+		displayFolder: 3. Time Intelligence
+
+	/// Budget for the same period one year earlier (the full period, including months without actuals).
+	measure 'Budget PY' = CALCULATE ( [Budget], SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+		formatString: #,##0
+		displayFolder: 3. Time Intelligence
+
+	/// Actual less Budget for closed periods, profit-impact sign: positive is favourable (more revenue or less cost than budget).
+	measure 'Var to Budget' = [Actual] - [Budget (Closed Periods)]
+		formatString: #,##0
+		displayFolder: 4. Budget Variance
+
+	/// Variance to budget as a share of the absolute budget for closed periods. Positive is favourable.
+	measure 'Var to Budget %' = DIVIDE ( [Var to Budget], ABS ( [Budget (Closed Periods)] ) )
+		formatString: 0.0%
+		displayFolder: 4. Budget Variance
+
+	/// Actual YTD less Budget YTD, profit-impact sign: positive is favourable.
+	measure 'Var to Budget YTD' = [Actual YTD] - [Budget YTD]
+		formatString: #,##0
+		displayFolder: 4. Budget Variance
+
+	/// Year-to-date variance to budget as a share of the absolute Budget YTD. Positive is favourable.
+	measure 'Var to Budget YTD %' = DIVIDE ( [Var to Budget YTD], ABS ( [Budget YTD] ) )
+		formatString: 0.0%
+		displayFolder: 4. Budget Variance
+
+	/// Revenue variance to budget for closed periods: positive means revenue above budget.
+	measure 'Revenue Var to Budget' = CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[P&L Group L1] = "Revenue" ) )
+		formatString: #,##0
+		displayFolder: 4. Budget Variance
+
+	/// EBITDA variance to budget for closed periods: positive means EBITDA above budget.
+	measure 'EBITDA Var to Budget' = CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[In EBITDA] = 1 ) )
+		formatString: #,##0
+		displayFolder: 4. Budget Variance
+
 	column Value
 		dataType: int64
 		isHidden
