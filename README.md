@@ -263,7 +263,21 @@ with a pandas calculation of what that role should see:
 Eleven cases in all (the CFO and controller were also run under `Entity Finance`). Each case was also checked on budget
 EBITDA, ledger and plan row counts, and the number of customers, cost centres and map rows visible. All figures are synthetic.
 
-**Not yet run:** "View as" in the Desktop window, and any test in the Power BI service, where role membership is assigned.
+**Viewed in Power BI Desktop** with "View as" for `Entity Finance` as the German analyst. The Overview page showed the German
+entity only, and the figures on it matched the query test for the same role and user: revenue 7,752,582, EBITDA 3,892,455,
+EBITDA variance to budget -673,615 for FY2026 to October.
+
+![Overview page viewed as the Entity Finance role](screenshots/view-as-entity-finance.png)
+
+*Overview viewed as `Entity Finance`, user `de.fpa@halcyon.example`. Synthetic data. Captured before the header fix described below.*
+
+This check also found something the queries could not. The header line on the page still read "All entities" for a user
+who could see one. The measure behind it asked whether the entity table was filtered, and a security filter does not count
+as a filter in that sense. I changed the measure to list the entities the reader can actually see, and confirmed by query
+that it now returns "DE01" for the German analyst and "DE01, UK01" for the EMEA role.
+
+**Not run:** the other roles and users in the Desktop window (they were tested by query only), and any test in the Power BI
+service, where role membership is assigned.
 
 ## Performance
 
@@ -312,6 +326,7 @@ and several slices of the data, the measure is right for reasons that do not dep
 | Row-level security | 11 role and user cases | All match |
 | Reconciliations inside the model | FX variance plus operational variance equals variance to budget; constant-currency growth plus FX impact equals reported growth; actuals plus remaining forecast equals the full-year forecast | Hold to the penny |
 | Report pages | All five pages rendered in Power BI Desktop and compared with the checked numbers | Match; see `docs/report.md` |
+| Security in the Desktop window | "View as" for one role and user, compared with the query test for the same case | Figures match; the header text was wrong and was fixed |
 
 The checks caught real problems along the way. Two examples:
 
@@ -327,7 +342,8 @@ The queries are in `tests/dax`, their results in `tests/results`, and the compar
 I would rather list this than have a reader find it.
 
 - **Nothing was published to the Power BI service.** Refresh there, role membership, and behaviour in the browser are untested.
-- **"View as" in the Desktop window** has not been run. Security was tested by query, as described above.
+- **"View as" in the Desktop window was run for one role and one user.** The other ten security cases were tested by query only.
+- **The page screenshots predate the header fix.** They show "All entities" in the header line where the report now lists the entity codes.
 - **One data scale.** Timings and the conversion decision were tested on 307,697 ledger lines only.
 - **One year on the pages.** The pages work for any year, but I reviewed the screenshots for FY2026 only. Forecast visuals are blank for years without a forecast.
 - **The pages were not viewed as a restricted role.** The roles were tested on the model, not on the rendered pages.

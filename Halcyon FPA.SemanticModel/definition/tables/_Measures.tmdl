@@ -504,15 +504,10 @@ table _Measures
 		formatString: #,0
 		displayFolder: 7. P&L Statement
 
-	/// One line of text for report page headers: the fiscal years and entities in scope, the last month with actuals, the currency, and a reminder that the data is synthetic.
+	/// One line of text for report page headers: the fiscal years in scope, the last month with actuals, the entities the reader can see (after report filters and row-level security), the currency, and a reminder that the data is synthetic.
 	measure 'Report Context' =
 			VAR _Years = CONCATENATEX ( VALUES ( 'Date'[Fiscal Year] ), 'Date'[Fiscal Year], ", ", 'Date'[Fiscal Year], ASC )
-			VAR _Entities =
-			    IF (
-			        ISFILTERED ( 'Entity' ),
-			        CONCATENATEX ( VALUES ( 'Entity'[Entity Code] ), 'Entity'[Entity Code], ", ", 'Entity'[Entity Code], ASC ),
-			        "All entities"
-			    )
+			VAR _Entities = CONCATENATEX ( VALUES ( 'Entity'[Entity Code] ), 'Entity'[Entity Code], ", ", 'Entity'[Entity Code], ASC )
 			RETURN
 			    _Years & "  |  Actuals to " & FORMAT ( [Last Actual Period], "mmm yyyy" ) & "  |  " & _Entities & "  |  GBP  |  Synthetic data"
 		displayFolder: 8. Report
