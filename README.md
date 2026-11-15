@@ -22,7 +22,7 @@ This README is a stub. It will be completed when the build is finished.
 |---|---|---|
 | 1 | Project scaffold, star schema, date table, relationships, hierarchies, base and P&L measures | Tested here: FY2025 actual and budget numbers in `data/expected.json` reproduced by the queries in `tests/dax/stage1_*.dax` |
 | 2 | Time intelligence and budget variance | Tested here: year-to-date Oct 2026 numbers in `data/expected.json` reproduced; 2,583 measure values (by month, quarter and year, on three slices) match an independent pandas recomputation in `tools/verify_measures.py` |
-| 3 | Forecast and constant currency | Not yet built |
+| 3 | Forecast, constant currency and posting-date month to date | Tested here: 1,600 measure values (by month, year and day, on three slices) match the pandas recomputation; FX variance plus operational variance equals variance to budget, constant-currency growth plus FX impact equals reported growth, and actuals plus remaining forecast equals the full-year forecast |
 | 4 | Row-level security | Not yet built |
 | 5 | Performance and best-practice analysis | Not yet run |
 | 6 | Report pages | Not yet built |

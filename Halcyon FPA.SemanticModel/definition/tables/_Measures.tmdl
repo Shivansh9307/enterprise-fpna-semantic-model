@@ -301,6 +301,148 @@ table _Measures
 		formatString: #,##0
 		displayFolder: 4. Budget Variance
 
+	/// Forecast in GBP, ledger sign (debit positive). Converts each month and currency at the forecast rate: the average rate up to the last month with actuals, then that rate held flat.
+	measure 'Forecast Ledger GBP' =
+			CALCULATE (
+			    SUMX (
+			        SUMMARIZE ( 'Plan', 'Date'[Month Start], 'Currency'[Currency Code] ),
+			        [Plan Local] * CALCULATE ( MAX ( 'FX Rates'[Forecast Rate To GBP] ) )
+			    ),
+			    'Scenario'[Scenario Name] = "Forecast"
+			)
+		formatString: #,##0
+		isHidden
+		displayFolder: 0. Base
+
+	/// Forecast in GBP, profit-impact sign: revenue positive, costs negative. Exists for FY2026 only: January to October equal actuals, November and December are projected.
+	measure Forecast = -1 * [Forecast Ledger GBP]
+		formatString: #,##0
+		displayFolder: 1. Scenario
+
+	/// Full-year budget for the fiscal year or years in the period, whichever months are selected.
+	measure 'Budget FY' = CALCULATE ( [Budget], REMOVEFILTERS ( 'Date' ), VALUES ( 'Date'[Year] ) )
+		formatString: #,##0
+		displayFolder: 5. Forecast
+
+	/// Full-year forecast for the fiscal year or years in the period, whichever months are selected. Blank for years without a forecast.
+	measure 'Forecast FY' = CALCULATE ( [Forecast], REMOVEFILTERS ( 'Date' ), VALUES ( 'Date'[Year] ) )
+		formatString: #,##0
+		displayFolder: 5. Forecast
+
+	/// Forecast for the months in the period that have no actuals yet.
+	measure 'Forecast Remaining' = CALCULATE ( [Forecast], KEEPFILTERS ( 'Date'[Has Actuals] = FALSE ) )
+		formatString: #,##0
+		displayFolder: 5. Forecast
+
+	/// Full-year outlook for the fiscal year in the period: actuals for closed months plus forecast for the remaining months. For a closed year this is the actual full year.
+	measure 'Actual YTD + Forecast Remaining' =
+			CALCULATE ( [Actual], REMOVEFILTERS ( 'Date' ), VALUES ( 'Date'[Year] ), 'Date'[Has Actuals] = TRUE )
+			    + CALCULATE ( [Forecast], REMOVEFILTERS ( 'Date' ), VALUES ( 'Date'[Year] ), 'Date'[Has Actuals] = FALSE )
+		formatString: #,##0
+		displayFolder: 5. Forecast
+
+	/// Full-year forecast less full-year budget, profit-impact sign: positive is favourable. Blank for years without a forecast.
+	measure 'Forecast vs Budget FY' =
+			VAR _Forecast = [Forecast FY]
+			RETURN
+			    IF ( NOT ISBLANK ( _Forecast ), _Forecast - [Budget FY] )
+		formatString: #,##0
+		displayFolder: 5. Forecast
+
+	/// Full-year forecast variance to budget as a share of the absolute full-year budget. Positive is favourable.
+	measure 'Forecast vs Budget FY %' = DIVIDE ( [Forecast vs Budget FY], ABS ( [Budget FY] ) )
+		formatString: 0.0%
+		displayFolder: 5. Forecast
+
+	/// Full-year forecast against the prior year's full-year actual, as a share of the absolute prior-year amount. Positive is favourable.
+	measure 'Forecast vs Actual PY %' =
+			VAR _Forecast = [Forecast FY]
+			VAR _PriorYear =
+			    CALCULATE (
+			        [Actual],
+			        SAMEPERIODLASTYEAR (
+			            CALCULATETABLE ( VALUES ( 'Date'[Date] ), REMOVEFILTERS ( 'Date' ), VALUES ( 'Date'[Year] ) )
+			        )
+			    )
+			RETURN
+			    IF ( NOT ISBLANK ( _Forecast ), DIVIDE ( _Forecast - _PriorYear, ABS ( _PriorYear ) ) )
+		formatString: 0.0%
+		displayFolder: 5. Forecast
+
+	/// Actuals in GBP converted at budget rates instead of average rates, profit-impact sign. Removes the FX effect from the comparison with budget.
+	measure 'Actual at Budget Rates' =
+			-1
+			    * SUMX (
+			        SUMMARIZE ( 'GL', 'Date'[Month Start], 'Currency'[Currency Code] ),
+			        [Actual Local] * CALCULATE ( MAX ( 'FX Rates'[Budget Rate To GBP] ) )
+			    )
+		formatString: #,##0
+		displayFolder: 6. Constant Currency
+
+	/// Part of the variance to budget caused by exchange rates: Actual less Actual at Budget Rates. Positive is favourable.
+	measure 'FX Var to Budget' = [Actual] - [Actual at Budget Rates]
+		formatString: #,##0
+		displayFolder: 6. Constant Currency
+
+	/// Variance to budget at constant currency: Actual at Budget Rates less Budget for closed periods. Positive is favourable. FX Var to Budget plus this equals Var to Budget.
+	measure 'Operational Var to Budget' = [Actual at Budget Rates] - [Budget (Closed Periods)]
+		formatString: #,##0
+		displayFolder: 6. Constant Currency
+
+	/// Actuals in GBP converted at the average rate of the same month one year earlier, profit-impact sign. Blank for 2024, which has no prior-year rates.
+	measure 'Actual at PY Rates' =
+			-1
+			    * SUMX (
+			        SUMMARIZE ( 'GL', 'Date'[Month Start], 'Currency'[Currency Code] ),
+			        [Actual Local] * CALCULATE ( MAX ( 'FX Rates'[Prior Year Avg Rate To GBP] ) )
+			    )
+		formatString: #,##0
+		displayFolder: 6. Constant Currency
+
+	/// Year-on-year change at constant currency: Actual at PY Rates less Actual PY. Positive is favourable. Blank when either side is blank.
+	measure 'YoY CC' =
+			VAR _Constant = [Actual at PY Rates]
+			VAR _PriorYear = [Actual PY]
+			RETURN
+			    IF ( NOT ISBLANK ( _Constant ) && NOT ISBLANK ( _PriorYear ), _Constant - _PriorYear )
+		formatString: #,##0
+		displayFolder: 6. Constant Currency
+
+	/// Year-on-year change at constant currency as a share of the absolute prior-year amount. Positive is favourable.
+	measure 'YoY % CC' = DIVIDE ( [YoY CC], ABS ( [Actual PY] ) )
+		formatString: 0.0%
+		displayFolder: 6. Constant Currency
+
+	/// Part of the year-on-year change caused by exchange rates: Actual less Actual at PY Rates. Positive is favourable. YoY CC plus this equals YoY.
+	measure 'FX Impact YoY' =
+			VAR _Constant = [Actual at PY Rates]
+			RETURN
+			    IF ( NOT ISBLANK ( _Constant ), [Actual] - _Constant )
+		formatString: #,##0
+		displayFolder: 6. Constant Currency
+
+	/// Actuals by posting date, month to date: journal lines posted from the first of the month to the last date in the period, whatever accounting period they belong to. Each line converts at the average rate of its own accounting period.
+	measure 'Posted MTD' =
+			CALCULATE (
+			    -1
+			        * SUMX (
+			            SUMMARIZE ( 'GL', 'GL'[Period Date], 'Currency'[Currency Code] ),
+			            VAR _Period = 'GL'[Period Date]
+			            VAR _Rate =
+			                CALCULATE (
+			                    MAX ( 'FX Rates'[Avg Rate To GBP] ),
+			                    REMOVEFILTERS ( 'Date' ),
+			                    'FX Rates'[Period Date] = _Period
+			                )
+			            RETURN
+			                CALCULATE ( SUM ( 'GL'[Amount Local] ) ) * _Rate
+			        ),
+			    DATESMTD ( 'Date'[Date] ),
+			    USERELATIONSHIP ( 'GL'[Posting Date], 'Date'[Date] )
+			)
+		formatString: #,##0
+		displayFolder: 3. Time Intelligence
+
 	column Value
 		dataType: int64
 		isHidden

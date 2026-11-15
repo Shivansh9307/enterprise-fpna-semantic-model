@@ -1,0 +1,28 @@
+// Stage 3 check: forecast, constant-currency and posting-date measures by year, entity US01 (USD), revenue accounts only: planted story 6, the USD shock. Synthetic GBP.
+// Compared with an independent pandas recomputation by tools/verify_measures.py.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Date'[Year],
+    TREATAS ( { "US01" }, 'Entity'[Entity Code] ),
+    TREATAS ( { "Revenue" }, 'Account'[P&L Group L1] ),
+    "Actual", [Actual],
+    "Forecast", [Forecast],
+    "Forecast FY", [Forecast FY],
+    "Budget FY", [Budget FY],
+    "Forecast Remaining", [Forecast Remaining],
+    "Actual YTD + Forecast Remaining", [Actual YTD + Forecast Remaining],
+    "Forecast vs Budget FY", [Forecast vs Budget FY],
+    "Forecast vs Budget FY %", [Forecast vs Budget FY %],
+    "Forecast vs Actual PY %", [Forecast vs Actual PY %],
+    "Actual at Budget Rates", [Actual at Budget Rates],
+    "FX Var to Budget", [FX Var to Budget],
+    "Operational Var to Budget", [Operational Var to Budget],
+    "Var to Budget", [Var to Budget],
+    "Actual at PY Rates", [Actual at PY Rates],
+    "YoY CC", [YoY CC],
+    "YoY % CC", [YoY % CC],
+    "FX Impact YoY", [FX Impact YoY],
+    "YoY", [YoY],
+    "Posted MTD", [Posted MTD]
+)
+ORDER BY 'Date'[Year]

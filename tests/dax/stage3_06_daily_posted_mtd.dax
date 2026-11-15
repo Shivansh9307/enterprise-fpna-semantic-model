@@ -1,0 +1,10 @@
+// Stage 3 check: Posted MTD by day for July 2025 and November 2026, all accounts and entities. Synthetic GBP.
+// November 2026 has no accounting period of its own: it holds only late adjustments for October 2026, converted at the October rate.
+// Compared with an independent pandas recomputation by tools/verify_measures.py.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Date'[Date],
+    TREATAS ( { 202507, 202611 }, 'Date'[Year Month Key] ),
+    "Posted MTD", [Posted MTD]
+)
+ORDER BY 'Date'[Date]

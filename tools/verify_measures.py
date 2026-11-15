@@ -5,8 +5,8 @@ The model's DAX results are exported to tests/results/*.csv by tools/run_dax.ps1
 numbers with pandas, straight from data/*.csv, and compares them. It shares no logic with the model: the time
 logic here is plain month arithmetic.
 
-    .venv/Scripts/python tools/verify_measures.py            # every check that has a result file
-    .venv/Scripts/python tools/verify_measures.py --stage 2
+    .venv/Scripts/python tools/verify_measures.py            # every stage
+    .venv/Scripts/python tools/verify_measures.py --stage 3
 
 All figures are synthetic (fictional Halcyon Group). Exit code 1 if any comparison fails.
 """
@@ -24,27 +24,46 @@ DATA, RESULTS = ROOT / "data", ROOT / "tests" / "results"
 # Amounts within 0.01 GBP. Ratios within one part in a million of their size: the model stores local amounts as
 # fixed decimals (4 places) while pandas uses floats, which moves ratios in about the ninth significant digit.
 AMOUNT_TOL, RATIO_TOL = 0.01, 1e-6
+ALL_MONTHS = list(pd.period_range("2024-01", "2026-12", freq="M"))
 
 
 def load():
-    gl = pd.read_csv(DATA / "Fact_GL.csv", parse_dates=["PeriodDate"])
+    """Line-level frames in GBP, profit-impact sign (revenue positive, costs negative)."""
+    gl = pd.read_csv(DATA / "Fact_GL.csv", parse_dates=["PeriodDate", "PostingDate"])
     plan = pd.read_csv(DATA / "Fact_Plan.csv", parse_dates=["PeriodDate"])
     fx = pd.read_csv(DATA / "Dim_FX.csv", parse_dates=["PeriodDate"])
     acc = pd.read_csv(DATA / "Dim_Account.csv")[["AccountKey", "PLGroupL1", "PLGroupL2", "InEBITDA"]]
     ent = pd.read_csv(DATA / "Dim_Entity.csv")[["EntityKey", "EntityCode"]]
     key = ["PeriodDate", "CurrencyCode"]
-    actual = gl.merge(fx, on=key).merge(acc, on="AccountKey").merge(ent, on="EntityKey")
-    actual["gbp"] = -actual["AmountLocal"] * actual["AvgRateToGBP"]  # profit-impact sign
-    budget = plan[plan.ScenarioKey == 2].merge(fx, on=key).merge(acc, on="AccountKey").merge(ent, on="EntityKey")
-    budget["gbp"] = -budget["AmountLocal"] * budget["BudgetRateToGBP"]
-    for df in (actual, budget):
+    last_actual = gl["PeriodDate"].max()
+
+    # rate of the same month one year earlier (missing for 2024)
+    prior = fx[key + ["AvgRateToGBP"]].rename(columns={"AvgRateToGBP": "PriorYearRate"})
+    prior["PeriodDate"] = prior["PeriodDate"] + pd.DateOffset(years=1)
+    # forecast rate: average rate up to the last actual month, then that month's rate held flat
+    held = fx[fx.PeriodDate == last_actual].set_index("CurrencyCode")["AvgRateToGBP"]
+    fx = fx.merge(prior, on=key, how="left")
+    fx["ForecastRate"] = fx["AvgRateToGBP"].where(fx.PeriodDate <= last_actual, fx.CurrencyCode.map(held))
+
+    def enrich(df):
+        df = df.merge(fx, on=key).merge(acc, on="AccountKey").merge(ent, on="EntityKey")
         df["month"] = df["PeriodDate"].dt.to_period("M")
-    return actual, budget
+        return df
+
+    actual = enrich(gl)
+    actual["gbp"] = -actual["AmountLocal"] * actual["AvgRateToGBP"]
+    actual["gbp_budget_rate"] = -actual["AmountLocal"] * actual["BudgetRateToGBP"]
+    actual["gbp_py_rate"] = -actual["AmountLocal"] * actual["PriorYearRate"]
+    budget = enrich(plan[plan.ScenarioKey == 2])
+    budget["gbp"] = -budget["AmountLocal"] * budget["BudgetRateToGBP"]
+    forecast = enrich(plan[plan.ScenarioKey == 3])
+    forecast["gbp"] = -forecast["AmountLocal"] * forecast["ForecastRate"]
+    return actual, budget, forecast
 
 
-def monthly(df, mask=None):
+def monthly(df, mask=None, col="gbp"):
     d = df if mask is None else df[mask(df)]
-    return d.groupby("month")["gbp"].sum().to_dict()
+    return d.dropna(subset=[col]).groupby("month")[col].sum().to_dict()
 
 
 def total(series, months):
@@ -60,10 +79,28 @@ def ratio(n, d):
     return None if n is None or not d else n / abs(d)
 
 
-def measures(ctx, s, first, last_actual):
-    """All stage 2 measures for a context given as a list of months. s holds monthly series for the slice."""
-    a, b = s["a"], s["b"]
-    closed = [m for m in ctx if m <= last_actual]
+def series_for(frames, mask):
+    actual, budget, forecast = frames
+    both = lambda extra: (lambda d: (mask(d) if mask else True) & extra(d))
+    rev, ebitda = (lambda d: d.PLGroupL1 == "Revenue"), (lambda d: d.InEBITDA == 1)
+    sliced = actual if mask is None else actual[mask(actual)]
+    return {"a": monthly(actual, mask), "b": monthly(budget, mask), "f": monthly(forecast, mask),
+            "a_rev": monthly(actual, both(rev)), "b_rev": monthly(budget, both(rev)),
+            "a_ebitda": monthly(actual, both(ebitda)), "b_ebitda": monthly(budget, both(ebitda)),
+            "a_budget_rate": monthly(actual, mask, "gbp_budget_rate"), "a_py_rate": monthly(actual, mask, "gbp_py_rate"),
+            "posted": sliced.groupby("PostingDate")["gbp"].sum(),
+            "first": min(monthly(actual)), "last_actual": max(monthly(actual))}
+
+
+def posted_mtd(s, last_date):
+    window = s["posted"][(s["posted"].index >= last_date.replace(day=1)) & (s["posted"].index <= last_date)]
+    return float(window.sum()) if len(window) else None
+
+
+def stage2_measures(ctx, s):
+    """Time intelligence and budget variance for a context given as a list of months."""
+    a, b, first = s["a"], s["b"], s["first"]
+    closed = [m for m in ctx if m <= s["last_actual"]]
     last = max(closed) if closed else None
     ytd = [m for m in pd.period_range(first, last) if m.year == last.year] if last else []
     qtd = [m for m in ytd if m.quarter == last.quarter]
@@ -90,57 +127,130 @@ def measures(ctx, s, first, last_actual):
     return out
 
 
+def stage3_measures(ctx, s):
+    """Forecast, constant currency and posting-date measures for a context given as a list of months."""
+    a, b, f, last_actual = s["a"], s["b"], s["f"], s["last_actual"]
+    closed = [m for m in ctx if m <= last_actual]
+    year = [m for m in ALL_MONTHS if m.year in {c.year for c in ctx}]
+    actual, budget_closed = total(a, ctx), total(b, closed)
+    prior = total(a, [m - 12 for m in closed])
+    out = {"Actual": actual, "Forecast": total(f, ctx), "Forecast FY": total(f, year), "Budget FY": total(b, year)}
+    out["Forecast Remaining"] = total(f, [m for m in ctx if m > last_actual])
+    parts = [total(a, [m for m in year if m <= last_actual]), total(f, [m for m in year if m > last_actual])]
+    out["Actual YTD + Forecast Remaining"] = None if parts == [None, None] else sum(p or 0.0 for p in parts)
+    has_forecast = out["Forecast FY"] is not None
+    out["Forecast vs Budget FY"] = out["Forecast FY"] - (out["Budget FY"] or 0.0) if has_forecast else None
+    out["Forecast vs Budget FY %"] = ratio(out["Forecast vs Budget FY"], out["Budget FY"])
+    prior_full_year = total(a, [m - 12 for m in year])
+    out["Forecast vs Actual PY %"] = ratio(out["Forecast FY"] - (prior_full_year or 0.0), prior_full_year) if has_forecast else None
+    at_budget, at_py = total(s["a_budget_rate"], ctx), total(s["a_py_rate"], ctx)
+    out["Actual at Budget Rates"] = at_budget
+    out["FX Var to Budget"] = minus(actual, at_budget)
+    out["Operational Var to Budget"] = minus(at_budget, budget_closed)
+    out["Var to Budget"] = minus(actual, budget_closed)
+    out["Actual at PY Rates"] = at_py
+    out["YoY CC"] = at_py - prior if at_py is not None and prior is not None else None
+    out["YoY % CC"] = ratio(out["YoY CC"], prior)
+    out["FX Impact YoY"] = (actual or 0.0) - at_py if at_py is not None else None
+    out["YoY"] = actual - prior if actual is not None and prior is not None else None
+    out["Posted MTD"] = posted_mtd(s, max(ctx).to_timestamp(how="end").normalize())
+    return out
+
+
 def context(kind, key):
     if kind == "month":
         return [pd.Period(f"{int(key) // 100}-{int(key) % 100:02d}", "M")]
     if kind == "year":
-        return list(pd.period_range(f"{int(key)}-01", f"{int(key)}-12", freq="M"))
+        return [m for m in ALL_MONTHS if m.year == int(key)]
     year, q = str(key).split(" Q")
-    return [m for m in pd.period_range(f"{year}-01", f"{year}-12", freq="M") if m.quarter == int(q)]
+    return [m for m in ALL_MONTHS if m.year == int(year) and m.quarter == int(q)]
 
 
-GRIDS = {  # result file -> (key column, context kind, slice filter)
-    "stage2_03_monthly_total": ("Year Month Key", "month", None),
-    "stage2_04_monthly_revenue": ("Year Month Key", "month", lambda d: d.PLGroupL1 == "Revenue"),
-    "stage2_05_monthly_us01_ebitda": ("Year Month Key", "month", lambda d: (d.EntityCode == "US01") & (d.InEBITDA == 1)),
-    "stage2_06_yearly_total": ("Year", "year", None),
-    "stage2_07_quarterly_de01": ("Year Quarter", "quarter", lambda d: d.EntityCode == "DE01"),
+ALL_KEYS = {"month": [m.year * 100 + m.month for m in ALL_MONTHS], "year": [2024, 2025, 2026],
+            "quarter": [f"{y} Q{q}" for y in (2024, 2025, 2026) for q in (1, 2, 3, 4)]}
+US_REVENUE = lambda d: (d.EntityCode == "US01") & (d.PLGroupL1 == "Revenue")
+GRIDS = {  # result file -> (stage, key column, context kind, slice filter)
+    "stage2_03_monthly_total": (2, "Year Month Key", "month", None),
+    "stage2_04_monthly_revenue": (2, "Year Month Key", "month", lambda d: d.PLGroupL1 == "Revenue"),
+    "stage2_05_monthly_us01_ebitda": (2, "Year Month Key", "month", lambda d: (d.EntityCode == "US01") & (d.InEBITDA == 1)),
+    "stage2_06_yearly_total": (2, "Year", "year", None),
+    "stage2_07_quarterly_de01": (2, "Year Quarter", "quarter", lambda d: d.EntityCode == "DE01"),
+    "stage3_01_monthly_total": (3, "Year Month Key", "month", None),
+    "stage3_02_monthly_us01_revenue": (3, "Year Month Key", "month", US_REVENUE),
+    "stage3_03_yearly_total": (3, "Year", "year", None),
+    "stage3_04_yearly_us01_revenue": (3, "Year", "year", US_REVENUE),
+    "stage3_05_yearly_ebitda": (3, "Year", "year", lambda d: d.InEBITDA == 1),
 }
 
 
-def check_grid(name, actual, budget):
-    key_col, kind, mask = GRIDS[name]
-    both = lambda extra: (lambda d: (mask(d) if mask else True) & extra(d))
-    s = {"a": monthly(actual, mask), "b": monthly(budget, mask),
-         "a_rev": monthly(actual, both(lambda d: d.PLGroupL1 == "Revenue")), "b_rev": monthly(budget, both(lambda d: d.PLGroupL1 == "Revenue")),
-         "a_ebitda": monthly(actual, both(lambda d: d.InEBITDA == 1)), "b_ebitda": monthly(budget, both(lambda d: d.InEBITDA == 1))}
-    first, last_actual = min(monthly(actual)), max(monthly(actual))
+def differs(name, got, want):
+    tol = RATIO_TOL * max(1.0, abs(want or 0.0)) if name.endswith("%") else AMOUNT_TOL
+    return (got is None) != (want is None) or (got is not None and abs(got - want) > tol)
+
+
+def check_grid(name, frames):
+    stage, key_col, kind, mask = GRIDS[name]
+    fn = stage2_measures if stage == 2 else stage3_measures
+    s = series_for(frames, mask)
     dax = pd.read_csv(RESULTS / f"{name}.csv")
     compared = failed = 0
     worst = 0.0
     problems = []
     for _, row in dax.iterrows():
-        want = measures(context(kind, row[key_col]), s, first, last_actual)
-        for m, w in want.items():
+        for m, want in fn(context(kind, row[key_col]), s).items():
             got = None if pd.isna(row[m]) else float(row[m])
             compared += 1
-            tol = RATIO_TOL * max(1.0, abs(w or 0.0)) if m.endswith("%") else AMOUNT_TOL
-            if (got is None) != (w is None) or (got is not None and abs(got - w) > tol):
+            if differs(m, got, want):
                 failed += 1
-                problems.append(f"    {row[key_col]} | {m}: model {got} vs pandas {w}")
+                problems.append(f"    {row[key_col]} | {m}: model {got} vs pandas {want}")
             elif got is not None and not m.endswith("%"):
-                worst = max(worst, abs(got - w))
-    # every context pandas can compute must be present in the model output
-    all_keys = {"month": [m.year * 100 + m.month for m in pd.period_range("2024-01", "2026-12", freq="M")],
-                "year": [2024, 2025, 2026],
-                "quarter": [f"{y} Q{q}" for y in (2024, 2025, 2026) for q in (1, 2, 3, 4)]}[kind]
-    missing = [k for k in all_keys if k not in set(dax[key_col])
-               and any(v is not None for v in measures(context(kind, k), s, first, last_actual).values())]
-    for k in missing:
-        failed += 1
-        problems.append(f"    {k}: row missing from the model output")
+                worst = max(worst, abs(got - want))
+    present = set(dax[key_col])
+    for k in ALL_KEYS[kind]:  # every context pandas can compute must be present in the model output
+        if k not in present and any(v is not None for v in fn(context(kind, k), s).values()):
+            failed += 1
+            problems.append(f"    {k}: row missing from the model output")
     print(f"{'PASS' if not failed else 'FAIL'}  {name}: {len(dax)} rows, {compared} values compared, {failed} failed, largest amount difference {worst:.4f}")
-    print("\n".join(problems[:15]))
+    if problems:
+        print("\n".join(problems[:15]))
+    return failed
+
+
+def check_daily_posted(frames):
+    name = "stage3_06_daily_posted_mtd"
+    s = series_for(frames, None)
+    dax = pd.read_csv(RESULTS / f"{name}.csv", parse_dates=["Date"])
+    got = dax.set_index("Date")["Posted MTD"]
+    days = list(pd.date_range("2025-07-01", "2025-07-31")) + list(pd.date_range("2026-11-01", "2026-11-30"))
+    failed, worst, problems = 0, 0.0, []
+    for d in days:
+        want, g = posted_mtd(s, d), (float(got[d]) if d in got.index and not pd.isna(got[d]) else None)
+        if differs("Posted MTD", g, want):
+            failed += 1
+            problems.append(f"    {d.date()} | Posted MTD: model {g} vs pandas {want}")
+        elif g is not None:
+            worst = max(worst, abs(g - want))
+    print(f"{'PASS' if not failed else 'FAIL'}  {name}: {len(dax)} rows, {len(days)} days compared, {failed} failed, largest amount difference {worst:.4f}")
+    if problems:
+        print("\n".join(problems[:15]))
+    return failed
+
+
+def check_identities():
+    """Reconciliations inside the model's own output."""
+    failed = 0
+    for name in [n for n, g in GRIDS.items() if g[0] == 3]:
+        dax = pd.read_csv(RESULTS / f"{name}.csv").fillna(0.0)
+        fx_split = (dax["FX Var to Budget"] + dax["Operational Var to Budget"] - dax["Var to Budget"]).abs().max()
+        with_py = dax[dax["Actual at PY Rates"] != 0]
+        yoy_split = (with_py["YoY CC"] + with_py["FX Impact YoY"] - with_py["YoY"]).abs().max() if len(with_py) else 0.0
+        with_fc = dax[dax["Forecast FY"] != 0]
+        outlook = (with_fc["Actual YTD + Forecast Remaining"] - with_fc["Forecast FY"]).abs().max() if len(with_fc) else 0.0
+        # the forecast holds January to October as actuals rounded to 2 decimals per entity, account and month, so allow 1 GBP
+        ok = fx_split <= AMOUNT_TOL and yoy_split <= AMOUNT_TOL and outlook <= 1.0
+        failed += not ok
+        print(f"{'PASS' if ok else 'FAIL'}  {name}: FX Var + Operational Var = Var to Budget (max gap {fx_split:.4f}); "
+              f"YoY CC + FX Impact YoY = YoY (max gap {yoy_split:.4f}); outlook = Forecast FY (max gap {outlook:.4f})")
     return failed
 
 
@@ -183,17 +293,23 @@ def check_expected(stage):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--stage", type=int, choices=[1, 2], help="check one stage only")
+    ap.add_argument("--stage", type=int, choices=[1, 2, 3], help="check one stage only")
     args = ap.parse_args()
+    stages = [args.stage] if args.stage else [1, 2, 3]
+    frames = load() if set(stages) & {2, 3} else None
     failed = 0
-    for stage in ([args.stage] if args.stage else [1, 2]):
-        print(f"--- stage {stage}: data/expected.json (synthetic GBP)")
-        failed += check_expected(stage)
-        if stage == 2:
-            print("--- stage 2: pandas recomputation of time intelligence and budget variance")
-            actual, budget = load()
-            for name in GRIDS:
-                failed += check_grid(name, actual, budget)
+    for stage in stages:
+        if stage in (1, 2):
+            print(f"--- stage {stage}: data/expected.json (synthetic GBP)")
+            failed += check_expected(stage)
+        if stage in (2, 3):
+            print(f"--- stage {stage}: pandas recomputation (synthetic GBP)")
+            for name in [n for n, g in GRIDS.items() if g[0] == stage]:
+                failed += check_grid(name, frames)
+        if stage == 3:
+            failed += check_daily_posted(frames)
+            print("--- stage 3: reconciliations inside the model output")
+            failed += check_identities()
     print(f"\n{'ALL CHECKS PASSED' if not failed else str(failed) + ' CHECK(S) FAILED'}")
     return 1 if failed else 0
 

@@ -30,6 +30,10 @@ There is no date CSV: build the date table in the model (a `CALENDAR` over 2024 
 - **IsAdjustment**: late adjustments, and reversal and rebook pairs (which net to zero).
 - **Dim_FX**: rates are local to GBP. Actuals convert at `AvgRateToGBP` of the period. Budget converts at `BudgetRateToGBP`, fixed at the January
   rate of each year, so constant-currency and FX variance can be built. `CloseRateToGBP` is there for completeness (the ledger has no balance sheet).
+- **Forecast rate** (not a column in the CSV): Forecast converts at `AvgRateToGBP` of the period up to the last month that has actuals
+  (Oct 2026), then at that month's rate held flat. The generator builds the Nov and Dec 2026 forecast amounts at the Oct 2026 average rate,
+  so the simulated Nov and Dec 2026 rows of `AvgRateToGBP` must not be used for the forecast. The model derives this rate in Power Query
+  as `Forecast Rate To GBP`.
 - **Dim_Account[InEBITDA]**: 1 for revenue, cost of sales and operating expenses; 0 for depreciation, amortisation, finance items and tax.
 - **Dim_Customer[StartMonth]**: first month the customer appears in the data (customers that predate 2024 show Jan 2024).
 - **Dim_UserEntityMap**: `cfo@` and `controller@` map to all four entities; each `xx.fpa@` maps to one. All on the reserved `halcyon.example` domain.
@@ -46,5 +50,8 @@ There is no date CSV: build the date table in the model (a `CALENDAR` over 2024 
 3. A large third-party licence renewal in Mar 2026 (about 1.8x the normal month).
 4. India engineering salaries run about 30% under plan from Apr to Jun 2026 (vacancies).
 5. A one-off bad debt charge in Dec 2025 (about 4x normal).
-6. A USD shock of about -6% at the start of FY2026, which opens a gap between reported and constant-currency results.
+6. A USD shock of about -6% at the start of FY2026, which opens a gap between reported and constant-currency results **year on year**
+   (FY2026 actuals converted at FY2025 rates). It does not show against budget rates: the FY2026 budget rate is the January 2026 rate,
+   which is already after the shock. Tested in the model for US01 revenue, Jan to Oct 2026 against Jan to Oct 2025 (synthetic GBP):
+   reported growth 3,716,026, constant-currency growth 5,457,467, FX impact -1,741,441; FX variance to budget only +152,186.
 7. Budget revenue is about 6% optimistic against actuals, so revenue variance is negative throughout.

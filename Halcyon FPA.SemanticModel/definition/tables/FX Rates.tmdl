@@ -32,6 +32,22 @@ table 'FX Rates'
 		summarizeBy: none
 		sourceColumn: Budget Rate To GBP
 
+	/// Forecast rate, local to GBP: the average rate up to the last month that has actuals, then that month's rate held flat. Converts the forecast.
+	column 'Forecast Rate To GBP'
+		dataType: double
+		isHidden
+		formatString: 0.000000
+		summarizeBy: none
+		sourceColumn: Forecast Rate To GBP
+
+	/// Average rate of the same month one year earlier, local to GBP. Blank for 2024. Converts actuals at prior-year rates for constant-currency year-on-year.
+	column 'Prior Year Avg Rate To GBP'
+		dataType: double
+		isHidden
+		formatString: 0.000000
+		summarizeBy: none
+		sourceColumn: Prior Year Avg Rate To GBP
+
 	partition 'FX Rates' = m
 		mode: import
 		source =
@@ -40,7 +56,14 @@ table 'FX Rates'
 				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
 				    Selected = Table.SelectColumns(Promoted, {"PeriodDate", "CurrencyCode", "AvgRateToGBP", "BudgetRateToGBP"}),
 				    Typed = Table.TransformColumnTypes(Selected, {{"PeriodDate", type date}, {"CurrencyCode", type text}, {"AvgRateToGBP", type number}, {"BudgetRateToGBP", type number}}, "en-US"),
-				    Renamed = Table.RenameColumns(Typed, {{"PeriodDate", "Period Date"}, {"CurrencyCode", "Currency Code"}, {"AvgRateToGBP", "Avg Rate To GBP"}, {"BudgetRateToGBP", "Budget Rate To GBP"}})
+				    Rates = Table.Buffer(Typed),
+				    GLSource = Csv.Document(File.Contents(DataFolder & "Fact_GL.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    GLPromoted = Table.PromoteHeaders(GLSource, [PromoteAllScalars = true]),
+				    LastActualPeriod = Date.FromText(List.Max(GLPromoted[PeriodDate])),
+				    AvgRateOf = (period as date, currency as text) => let Match = Table.SelectRows(Rates, each [PeriodDate] = period and [CurrencyCode] = currency) in if Table.IsEmpty(Match) then null else Match{0}[AvgRateToGBP],
+				    ForecastRate = Table.AddColumn(Rates, "ForecastRateToGBP", each AvgRateOf(if [PeriodDate] <= LastActualPeriod then [PeriodDate] else LastActualPeriod, [CurrencyCode]), type number),
+				    PriorYearRate = Table.AddColumn(ForecastRate, "PriorYearAvgRateToGBP", each AvgRateOf(Date.AddYears([PeriodDate], -1), [CurrencyCode]), type nullable number),
+				    Renamed = Table.RenameColumns(PriorYearRate, {{"PeriodDate", "Period Date"}, {"CurrencyCode", "Currency Code"}, {"AvgRateToGBP", "Avg Rate To GBP"}, {"BudgetRateToGBP", "Budget Rate To GBP"}, {"ForecastRateToGBP", "Forecast Rate To GBP"}, {"PriorYearAvgRateToGBP", "Prior Year Avg Rate To GBP"}})
 				in
 				    Renamed
 
