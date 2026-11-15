@@ -1,0 +1,9 @@
+// Experiment: the same result from a stored GBP column (temporary 'GL'[Amount GBP Temp]). Shape: by customer and year (2,500 customers). Synthetic data.
+DEFINE
+    MEASURE '_Measures'[Actual Stored] = -1 * SUM ( 'GL'[Amount GBP Temp] )
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Customer'[Customer Name],
+    'Date'[Year],
+    "Value", [Actual Stored]
+)

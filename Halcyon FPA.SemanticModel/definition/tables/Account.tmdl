@@ -4,6 +4,7 @@ table Account
 	column 'Account Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		isKey
 		summarizeBy: none
 		sourceColumn: Account Key
@@ -41,17 +42,11 @@ table Account
 		summarizeBy: none
 		sourceColumn: Default Department
 
-	/// -1 for credit-nature accounts (revenue, interest income), +1 otherwise. Hidden.
-	column 'Natural Sign'
-		dataType: int64
-		isHidden
-		summarizeBy: none
-		sourceColumn: Natural Sign
-
 	/// 1 for revenue, cost of sales and operating expenses; 0 for depreciation, amortisation, finance items and tax. Hidden; used by the EBITDA measures.
 	column 'In EBITDA'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: In EBITDA
 
@@ -91,10 +86,11 @@ table Account
 				let
 				    Source = Csv.Document(File.Contents(DataFolder & "Dim_Account.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
 				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
-				    Typed = Table.TransformColumnTypes(Promoted, {{"AccountKey", Int64.Type}, {"AccountCode", type text}, {"AccountName", type text}, {"PLGroupL1", type text}, {"PLGroupL2", type text}, {"DefaultDepartment", type text}, {"NaturalSign", Int64.Type}, {"InEBITDA", Int64.Type}, {"SortOrder", Int64.Type}}, "en-US"),
+				    Selected = Table.RemoveColumns(Promoted, {"NaturalSign"}),
+				    Typed = Table.TransformColumnTypes(Selected, {{"AccountKey", Int64.Type}, {"AccountCode", type text}, {"AccountName", type text}, {"PLGroupL1", type text}, {"PLGroupL2", type text}, {"DefaultDepartment", type text}, {"InEBITDA", Int64.Type}, {"SortOrder", Int64.Type}}, "en-US"),
 				    L1Sort = Table.AddColumn(Typed, "L1 Sort", (r) => List.Min(Table.SelectRows(Typed, each [PLGroupL1] = r[PLGroupL1])[SortOrder]), Int64.Type),
 				    L2Sort = Table.AddColumn(L1Sort, "L2 Sort", (r) => List.Min(Table.SelectRows(Typed, each [PLGroupL2] = r[PLGroupL2])[SortOrder]), Int64.Type),
-				    Renamed = Table.RenameColumns(L2Sort, {{"AccountKey", "Account Key"}, {"AccountCode", "Account Code"}, {"AccountName", "Account Name"}, {"PLGroupL1", "P&L Group L1"}, {"PLGroupL2", "P&L Group L2"}, {"DefaultDepartment", "Default Department"}, {"NaturalSign", "Natural Sign"}, {"InEBITDA", "In EBITDA"}, {"SortOrder", "Sort Order"}})
+				    Renamed = Table.RenameColumns(L2Sort, {{"AccountKey", "Account Key"}, {"AccountCode", "Account Code"}, {"AccountName", "Account Name"}, {"PLGroupL1", "P&L Group L1"}, {"PLGroupL2", "P&L Group L2"}, {"DefaultDepartment", "Default Department"}, {"InEBITDA", "In EBITDA"}, {"SortOrder", "Sort Order"}})
 				in
 				    Renamed
 

@@ -1,0 +1,8 @@
+// Experiment: [Actual] converts currency in DAX at month x currency grain. Shape: by month, entity and P&L group. Synthetic data.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Date'[Year Month Key],
+    'Entity'[Entity Code],
+    'Account'[P&L Group L2],
+    "Value", [Actual]
+)

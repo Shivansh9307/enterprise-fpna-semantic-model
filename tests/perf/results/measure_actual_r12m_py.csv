@@ -1,0 +1,22 @@
+﻿Sequence,Cache,TotalDuration_ms,FormulaEngineDuration_ms,StorageEngineDuration_ms,StorageEngineQueryCount,StorageEngineCpu_ms,TotalCpu_ms,VertipaqCacheMatches,RowCount,Error
+1,Cold,20,15,5,8,0,16,0,396,
+2,Cold,25,0,0,0,0,0,0,396,
+3,Cold,21,16,5,8,0,0,0,396,
+4,Cold,21,15,6,8,0,16,0,396,
+5,Cold,23,18,5,8,16,16,0,396,
+6,Warm,17,12,5,7,0,16,7,396,
+7,Warm,14,14,0,7,0,0,7,396,
+8,Warm,17,17,0,7,0,16,7,396,
+9,Warm,20,19,1,7,0,16,7,396,
+10,Warm,15,15,0,7,0,16,7,396,
+
+# Summary
+Cache,Statistic,TotalDuration_ms,FormulaEngineDuration_ms,StorageEngineDuration_ms,StorageEngineQueryCount,VertipaqCacheMatches,RowCount
+Cold,Average,22.0,12.8,4.2,6.4,0.0,396.0
+Cold,StdDev,2.0,7.3,2.4,3.6,0.0,0.0
+Cold,Min,20.0,0.0,0.0,0.0,0.0,396.0
+Cold,Max,25.0,18.0,6.0,8.0,0.0,396.0
+Warm,Average,16.6,15.4,1.2,7.0,7.0,396.0
+Warm,StdDev,2.3,2.7,2.2,0.0,0.0,0.0
+Warm,Min,14.0,12.0,0.0,7.0,7.0,396.0
+Warm,Max,20.0,19.0,5.0,7.0,7.0,396.0

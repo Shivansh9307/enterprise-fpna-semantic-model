@@ -6,20 +6,15 @@ table 'User Entity Map'
 	column 'User Principal Name'
 		dataType: string
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: User Principal Name
-
-	/// Role the user is expected to be assigned to. Informational: role membership is set in the Power BI service, not here.
-	column 'Role Name'
-		dataType: string
-		isHidden
-		summarizeBy: none
-		sourceColumn: Role Name
 
 	/// Entity the user may see.
 	column 'Entity Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Entity Key
 
@@ -29,8 +24,9 @@ table 'User Entity Map'
 				let
 				    Source = Csv.Document(File.Contents(DataFolder & "Dim_UserEntityMap.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
 				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
-				    Typed = Table.TransformColumnTypes(Promoted, {{"UserPrincipalName", type text}, {"RoleName", type text}, {"EntityKey", Int64.Type}}, "en-US"),
-				    Renamed = Table.RenameColumns(Typed, {{"UserPrincipalName", "User Principal Name"}, {"RoleName", "Role Name"}, {"EntityKey", "Entity Key"}})
+				    Selected = Table.RemoveColumns(Promoted, {"RoleName"}),
+				    Typed = Table.TransformColumnTypes(Selected, {{"UserPrincipalName", type text}, {"EntityKey", Int64.Type}}, "en-US"),
+				    Renamed = Table.RenameColumns(Typed, {{"UserPrincipalName", "User Principal Name"}, {"EntityKey", "Entity Key"}})
 				in
 				    Renamed
 

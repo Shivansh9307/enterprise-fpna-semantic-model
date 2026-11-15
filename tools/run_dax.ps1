@@ -15,6 +15,11 @@ and to request a refresh is a .NET Framework build:
 -Roles alone applies the role to your own Windows identity. -User needs -Roles. The local engine rejects EffectiveUserName,
 so -User uses the ActAs authentication scheme, the mechanism Desktop uses for "View as > Other user".
 
+-Benchmark times each query instead of exporting its result (dscmd benchmark, cold and warm cache runs), for example
+    -QueryDir tests\perf -OutDir tests\perfesults -Benchmark
+-Vpax <file> exports the model's size statistics (VertiPaq Analyzer) and runs no queries. The file holds model metadata,
+including the local data path, so keep it out of the repository.
+
 -Refresh asks the engine for a full data refresh first. That leaves Desktop with unsaved changes; nothing is written to the project files.
 Needs: Power BI Desktop with Halcyon FPA.pbip open, DAX Studio, and Tabular Editor 2 (for its Microsoft.AnalysisServices.Tabular.dll).
 #>
@@ -28,6 +33,10 @@ param(
     [string]$Roles = "",
     [string]$User = "",
     [string]$OutSuffix = "",
+    [string]$Vpax = "",
+    [switch]$Benchmark,
+    [int]$Cold = 3,
+    [int]$Warm = 5,
     [switch]$Refresh
 )
 $ErrorActionPreference = "Stop"
@@ -62,6 +71,11 @@ try {
 }
 finally { $tom.Disconnect() }
 
+if ($Vpax) {
+    & $DscmdPath vpax $Vpax -s $server -d $database 2>&1 | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path $Vpax)) { exit 1 }
+    exit 0
+}
 if ($User -and -not $Roles) { throw "-User needs -Roles: without a role no security filter applies." }
 $connection = "Data Source=$server;Initial Catalog=$database"
 if ($Roles) { $connection += ";Roles=$Roles" }
@@ -79,7 +93,8 @@ foreach ($file in $files) {
     if (Test-Path $out) { Remove-Item $out -Confirm:$false }
     # Windows PowerShell passes embedded double quotes to native programs unescaped, so escape them here.
     $query = (Get-Content $file.FullName -Raw).Replace('"', '\"')
-    $log = & $DscmdPath csv $out -c $connectionArg -q $query 2>&1
+    if ($Benchmark) { $log = & $DscmdPath benchmark $out -s $server -d $database -f $file.FullName --cold $Cold --warm $Warm 2>&1 }
+    else { $log = & $DscmdPath csv $out -c $connectionArg -q $query 2>&1 }
     if (Test-Path $out) { Write-Host "ok      $($file.Name)$(if ($Roles) { " as [$Roles] $User" }) -> $out" }
     else { $failed++; Write-Host "FAILED  $($file.Name)"; $log | ForEach-Object { Write-Host "        $_" } }
 }

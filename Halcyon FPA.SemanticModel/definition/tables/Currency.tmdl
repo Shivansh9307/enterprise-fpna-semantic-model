@@ -5,6 +5,7 @@ table Currency
 	column 'Currency Code'
 		dataType: string
 		isHidden
+		isAvailableInMdx: false
 		isKey
 		summarizeBy: none
 		sourceColumn: Currency Code

@@ -5,6 +5,7 @@ table GL
 	column 'Journal ID'
 		dataType: string
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Journal ID
 
@@ -12,6 +13,7 @@ table GL
 	column 'Posting Date'
 		dataType: dateTime
 		isHidden
+		isAvailableInMdx: false
 		formatString: dd mmm yyyy
 		summarizeBy: none
 		sourceColumn: Posting Date
@@ -20,6 +22,7 @@ table GL
 	column 'Period Date'
 		dataType: dateTime
 		isHidden
+		isAvailableInMdx: false
 		formatString: dd mmm yyyy
 		summarizeBy: none
 		sourceColumn: Period Date
@@ -27,18 +30,21 @@ table GL
 	column 'Entity Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Entity Key
 
 	column 'Account Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Account Key
 
 	column 'Cost Centre Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Cost Centre Key
 
@@ -46,12 +52,14 @@ table GL
 	column 'Customer Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Customer Key
 
 	column 'Currency Code'
 		dataType: string
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Currency Code
 
@@ -59,6 +67,7 @@ table GL
 	column 'Amount Local'
 		dataType: decimal
 		isHidden
+		isAvailableInMdx: false
 		formatString: #,##0.00
 		summarizeBy: none
 		sourceColumn: Amount Local
@@ -67,6 +76,7 @@ table GL
 	column Description
 		dataType: string
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Description
 

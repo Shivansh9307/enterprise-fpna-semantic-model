@@ -1,0 +1,7 @@
+// Timing query for a P&L statement matrix: statement lines by month with actual, budget variance and prior year. Synthetic data.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Line'[Line],
+    'Date'[Year Month Key],
+    "P&L Value", [P&L Value]
+)

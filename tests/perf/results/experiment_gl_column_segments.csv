@@ -1,0 +1,70 @@
+DIMENSION_NAME,COLUMN_ID,USED_SIZE
+"GL","RowNumber 2662979B 1795 4F74 8F37 6A1BA8059B61 (14)",128
+"GL","Journal ID (69)",568240
+"GL","Posting Date (70)",360752
+"GL","Period Date (71)",38392
+"GL","Entity Key (72)",1408
+"GL","Account Key (73)",536
+"GL","Cost Centre Key (74)",2032
+"GL","Customer Key (75)",447216
+"GL","Currency Code (76)",1408
+"GL","Amount Local (77)",1230920
+"GL","Description (78)",17776
+"GL","Source System (79)",136
+"GL","Is Adjustment (80)",4792
+"GL","Amount GBP Temp (3636)",820656
+"GL","INDEX",4008
+"GL","INDEX",24
+"GL","INDEX",24
+"GL","INDEX",8
+"GL","INDEX",8
+"GL","INDEX",1648
+"GL","INDEX",64
+"GL","POS_TO_ID",4104
+"GL","POS_TO_ID",16
+"GL","ID_TO_POS",4104
+"GL","ID_TO_POS",16
+"GL","POS_TO_ID",24
+"GL","POS_TO_ID",16
+"GL","ID_TO_POS",24
+"GL","ID_TO_POS",16
+"GL","POS_TO_ID",532456
+"GL","POS_TO_ID",16
+"GL","POS_TO_ID",144
+"GL","POS_TO_ID",16
+"GL","ID_TO_POS",144
+"GL","ID_TO_POS",16
+"GL","POS_TO_ID",16
+"GL","POS_TO_ID",16
+"GL","POS_TO_ID",8
+"GL","ID_TO_POS",16
+"GL","ID_TO_POS",16
+"GL","ID_TO_POS",8
+"GL","POS_TO_ID",24
+"GL","POS_TO_ID",16
+"GL","ID_TO_POS",24
+"GL","ID_TO_POS",16
+"GL","POS_TO_ID",10008
+"GL","POS_TO_ID",16
+"GL","ID_TO_POS",10008
+"GL","ID_TO_POS",16
+"GL","POS_TO_ID",24
+"GL","POS_TO_ID",16
+"GL","ID_TO_POS",24
+"GL","ID_TO_POS",16
+"GL","POS_TO_ID",1632
+"GL","POS_TO_ID",16
+"GL","ID_TO_POS",1632
+"GL","ID_TO_POS",16
+"GL","POS_TO_ID",60552
+"GL","POS_TO_ID",16
+"GL","ID_TO_POS",60552
+"GL","ID_TO_POS",16
+"GL","POS_TO_ID",128
+"GL","POS_TO_ID",16
+"GL","ID_TO_POS",128
+"GL","ID_TO_POS",16
+"GL","POS_TO_ID",128
+"GL","POS_TO_ID",16
+"GL","ID_TO_POS",128
+"GL","ID_TO_POS",16

@@ -6,6 +6,7 @@ table Plan
 	column 'Period Date'
 		dataType: dateTime
 		isHidden
+		isAvailableInMdx: false
 		formatString: dd mmm yyyy
 		summarizeBy: none
 		sourceColumn: Period Date
@@ -13,30 +14,35 @@ table Plan
 	column 'Scenario Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Scenario Key
 
 	column 'Entity Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Entity Key
 
 	column 'Account Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Account Key
 
 	column 'Cost Centre Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Cost Centre Key
 
 	column 'Currency Code'
 		dataType: string
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Currency Code
 
@@ -44,6 +50,7 @@ table Plan
 	column 'Amount Local'
 		dataType: decimal
 		isHidden
+		isAvailableInMdx: false
 		formatString: #,##0.00
 		summarizeBy: none
 		sourceColumn: Amount Local

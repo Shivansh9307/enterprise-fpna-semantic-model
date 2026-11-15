@@ -1,0 +1,8 @@
+// Experiment: [Actual] converts currency in DAX at month x currency grain. Shape: by account, cost centre and month, the finest reporting grain. Synthetic data.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Account'[Account Name],
+    'Cost Centre'[Cost Centre Name],
+    'Date'[Year Month Key],
+    "Value", [Actual]
+)

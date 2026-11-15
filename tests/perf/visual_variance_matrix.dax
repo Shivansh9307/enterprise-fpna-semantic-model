@@ -1,0 +1,18 @@
+// Timing query for a variance matrix: accounts by entity for a year, with actual, budget, variance, FX split and prior year. Synthetic data.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Account'[P&L Group L1],
+    'Account'[P&L Group L2],
+    'Account'[Account Name],
+    'Entity'[Entity Code],
+    TREATAS ( { 2026 }, 'Date'[Year] ),
+    "Actual", [Actual],
+    "Budget", [Budget (Closed Periods)],
+    "Var to Budget", [Var to Budget],
+    "Var to Budget %", [Var to Budget %],
+    "FX Var to Budget", [FX Var to Budget],
+    "Operational Var to Budget", [Operational Var to Budget],
+    "Actual PY", [Actual PY],
+    "YoY %", [YoY %],
+    "YoY % CC", [YoY % CC]
+)

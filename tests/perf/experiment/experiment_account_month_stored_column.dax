@@ -1,0 +1,10 @@
+// Experiment: the same result from a stored GBP column (temporary 'GL'[Amount GBP Temp]). Shape: by account, cost centre and month, the finest reporting grain. Synthetic data.
+DEFINE
+    MEASURE '_Measures'[Actual Stored] = -1 * SUM ( 'GL'[Amount GBP Temp] )
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Account'[Account Name],
+    'Cost Centre'[Cost Centre Name],
+    'Date'[Year Month Key],
+    "Value", [Actual Stored]
+)

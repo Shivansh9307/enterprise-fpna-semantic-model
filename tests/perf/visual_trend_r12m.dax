@@ -1,0 +1,11 @@
+// Timing query for a trend chart: rolling 12 months, year to date and budget year to date by month and entity. Synthetic data.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Date'[Year Month Key],
+    'Entity'[Entity Code],
+    "Actual R12M", [Actual R12M],
+    "Actual R12M PY", [Actual R12M PY],
+    "Actual YTD", [Actual YTD],
+    "Budget YTD", [Budget YTD],
+    "Var to Budget YTD %", [Var to Budget YTD %]
+)

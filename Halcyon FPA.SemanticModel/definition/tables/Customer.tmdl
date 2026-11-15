@@ -4,6 +4,7 @@ table Customer
 	column 'Customer Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		isKey
 		summarizeBy: none
 		sourceColumn: Customer Key
@@ -30,12 +31,14 @@ table Customer
 	column 'Entity Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Entity Key
 
 	/// Customer country.
 	column Country
 		dataType: string
+		dataCategory: Country
 		summarizeBy: none
 		sourceColumn: Country
 

@@ -1,0 +1,7 @@
+// Experiment: [Actual] converts currency in DAX at month x currency grain. Shape: by customer and year (2,500 customers). Synthetic data.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Customer'[Customer Name],
+    'Date'[Year],
+    "Value", [Actual]
+)

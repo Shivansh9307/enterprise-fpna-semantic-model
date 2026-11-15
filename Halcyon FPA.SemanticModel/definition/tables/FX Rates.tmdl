@@ -6,6 +6,7 @@ table 'FX Rates'
 	column 'Period Date'
 		dataType: dateTime
 		isHidden
+		isAvailableInMdx: false
 		formatString: dd mmm yyyy
 		summarizeBy: none
 		sourceColumn: Period Date
@@ -13,6 +14,7 @@ table 'FX Rates'
 	column 'Currency Code'
 		dataType: string
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Currency Code
 
@@ -20,6 +22,7 @@ table 'FX Rates'
 	column 'Avg Rate To GBP'
 		dataType: double
 		isHidden
+		isAvailableInMdx: false
 		formatString: 0.000000
 		summarizeBy: none
 		sourceColumn: Avg Rate To GBP
@@ -28,6 +31,7 @@ table 'FX Rates'
 	column 'Budget Rate To GBP'
 		dataType: double
 		isHidden
+		isAvailableInMdx: false
 		formatString: 0.000000
 		summarizeBy: none
 		sourceColumn: Budget Rate To GBP
@@ -36,6 +40,7 @@ table 'FX Rates'
 	column 'Forecast Rate To GBP'
 		dataType: double
 		isHidden
+		isAvailableInMdx: false
 		formatString: 0.000000
 		summarizeBy: none
 		sourceColumn: Forecast Rate To GBP
@@ -44,6 +49,7 @@ table 'FX Rates'
 	column 'Prior Year Avg Rate To GBP'
 		dataType: double
 		isHidden
+		isAvailableInMdx: false
 		formatString: 0.000000
 		summarizeBy: none
 		sourceColumn: Prior Year Avg Rate To GBP

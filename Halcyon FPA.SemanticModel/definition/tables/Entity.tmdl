@@ -4,6 +4,7 @@ table Entity
 	column 'Entity Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		isKey
 		summarizeBy: none
 		sourceColumn: Entity Key
@@ -23,6 +24,7 @@ table Entity
 	/// Country of the entity.
 	column Country
 		dataType: string
+		dataCategory: Country
 		summarizeBy: none
 		sourceColumn: Country
 

@@ -1,0 +1,8 @@
+// Timing query for [Forecast]: one measure by month, entity and P&L group, a typical matrix shape. Synthetic data.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Date'[Year Month Key],
+    'Entity'[Entity Code],
+    'Account'[P&L Group L2],
+    "Value", [Forecast]
+)

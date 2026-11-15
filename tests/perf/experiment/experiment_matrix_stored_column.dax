@@ -1,0 +1,10 @@
+// Experiment: the same result from a stored GBP column (temporary 'GL'[Amount GBP Temp]). Shape: by month, entity and P&L group. Synthetic data.
+DEFINE
+    MEASURE '_Measures'[Actual Stored] = -1 * SUM ( 'GL'[Amount GBP Temp] )
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Date'[Year Month Key],
+    'Entity'[Entity Code],
+    'Account'[P&L Group L2],
+    "Value", [Actual Stored]
+)

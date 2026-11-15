@@ -5,6 +5,7 @@ table Scenario
 	column 'Scenario Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		isKey
 		summarizeBy: none
 		sourceColumn: Scenario Key
@@ -12,6 +13,7 @@ table Scenario
 	column 'Scenario Name'
 		dataType: string
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Scenario Name
 

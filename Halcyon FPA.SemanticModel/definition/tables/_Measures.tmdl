@@ -16,8 +16,7 @@ table _Measures
 	/// Last accounting period (first day of the month) that has GL actuals, ignoring all filters.
 	measure 'Last Actual Period' = CALCULATE ( MAX ( 'GL'[Period Date] ), REMOVEFILTERS ( ) )
 		formatString: dd mmm yyyy
-		isHidden
-		displayFolder: 0. Base
+		displayFolder: 1. Scenario
 
 	/// Actuals in GBP, ledger sign (debit positive). Converts each month and currency at that month's average rate.
 	measure 'Actual Ledger GBP' =
@@ -25,7 +24,7 @@ table _Measures
 			    SUMMARIZE ( 'GL', 'Date'[Month Start], 'Currency'[Currency Code] ),
 			    [Actual Local] * CALCULATE ( MAX ( 'FX Rates'[Avg Rate To GBP] ) )
 			)
-		formatString: #,##0
+		formatString: #,0
 		isHidden
 		displayFolder: 0. Base
 
@@ -38,28 +37,28 @@ table _Measures
 			    ),
 			    'Scenario'[Scenario Name] = "Budget"
 			)
-		formatString: #,##0
+		formatString: #,0
 		isHidden
 		displayFolder: 0. Base
 
 	/// Actuals in GBP at average rates, profit-impact sign: revenue positive, costs negative. Adds up at any level; all accounts together give net profit.
 	measure Actual = -1 * [Actual Ledger GBP]
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 1. Scenario
 
 	/// Budget in GBP at budget rates, profit-impact sign: revenue positive, costs negative. Adds up at any level.
 	measure Budget = -1 * [Budget Ledger GBP]
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 1. Scenario
 
 	/// Actual revenue in GBP, positive.
 	measure Revenue = CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] = "Revenue" ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 2. P&L
 
 	/// Actual cost of sales in GBP, shown as a positive cost.
 	measure 'Cost of Sales' = -1 * CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] = "Cost of Sales" ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 2. P&L
 
 	/// Actual gross profit in GBP: revenue less cost of sales.
@@ -68,32 +67,32 @@ table _Measures
 			    [Actual],
 			    KEEPFILTERS ( 'Account'[P&L Group L1] IN { "Revenue", "Cost of Sales" } )
 			)
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 2. P&L
 
 	/// Actual gross profit as a share of revenue.
 	measure 'Gross Margin %' = DIVIDE ( [Gross Profit], [Revenue] )
-		formatString: 0.0%
+		formatString: #,0.0%;-#,0.0%;#,0.0%
 		displayFolder: 2. P&L
 
 	/// Actual operating expenses in GBP (Sales and Marketing, Research and Development, General and Administrative), shown as a positive cost.
 	measure 'Operating Expenses' = -1 * CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] = "Operating Expenses" ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 2. P&L
 
 	/// Actual EBITDA in GBP: revenue less cost of sales and operating expenses (accounts flagged In EBITDA).
 	measure EBITDA = CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[In EBITDA] = 1 ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 2. P&L
 
 	/// Actual EBITDA as a share of revenue.
 	measure 'EBITDA Margin %' = DIVIDE ( [EBITDA], [Revenue] )
-		formatString: 0.0%
+		formatString: #,0.0%;-#,0.0%;#,0.0%
 		displayFolder: 2. P&L
 
 	/// Actual depreciation and amortisation in GBP, shown as a positive cost.
 	measure 'Depreciation and Amortisation' = -1 * CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] = "Depreciation and Amortisation" ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 2. P&L
 
 	/// Actual operating profit (EBIT) in GBP: EBITDA less depreciation and amortisation.
@@ -102,37 +101,37 @@ table _Measures
 			    [Actual],
 			    KEEPFILTERS ( 'Account'[P&L Group L1] IN { "Revenue", "Cost of Sales", "Operating Expenses", "Depreciation and Amortisation" } )
 			)
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 2. P&L
 
 	/// Actual net finance costs in GBP: interest expense and FX losses less interest income, shown as a positive cost. FX gains and losses are random noise in this synthetic data.
 	measure 'Net Finance Costs' = -1 * CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] = "Finance Items" ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 2. P&L
 
 	/// Actual profit before tax in GBP: operating profit less net finance costs.
 	measure 'Profit Before Tax' = CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] <> "Tax" ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 2. P&L
 
 	/// Actual corporation tax in GBP, shown as a positive cost. A smoothed placeholder in this synthetic data, not a tax computation.
 	measure Tax = -1 * CALCULATE ( [Actual], KEEPFILTERS ( 'Account'[P&L Group L1] = "Tax" ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 2. P&L
 
 	/// Actual net profit in GBP: all P&L accounts.
 	measure 'Net Profit' = [Actual]
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 2. P&L
 
 	/// Actual net profit as a share of revenue.
 	measure 'Net Margin %' = DIVIDE ( [Net Profit], [Revenue] )
-		formatString: 0.0%
+		formatString: #,0.0%;-#,0.0%;#,0.0%
 		displayFolder: 2. P&L
 
 	/// Actual amount of the accounts in scope as a share of total actual revenue, in profit-impact sign (costs show as negative percentages).
 	measure '% of Revenue' = DIVIDE ( [Actual], CALCULATE ( [Revenue], REMOVEFILTERS ( 'Account' ) ) )
-		formatString: 0.0%
+		formatString: #,0.0%;-#,0.0%;#,0.0%
 		displayFolder: 2. P&L
 
 	/// Actual value for the P&L Line on rows (Revenue, Cost of Sales, Gross Profit, and so on). Costs are positive, subtotals are profits. Blank unless exactly one P&L Line is in scope.
@@ -151,12 +150,12 @@ table _Measures
 			    10, [Tax],
 			    11, [Net Profit]
 			)
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 2. P&L
 
 	/// Budget in GBP for closed periods only (months that have actuals), profit-impact sign. Use it to compare like for like with Actual when the period includes future months.
 	measure 'Budget (Closed Periods)' = CALCULATE ( [Budget], KEEPFILTERS ( 'Date'[Has Actuals] = TRUE ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 1. Scenario
 
 	/// Actual month to date, up to the last date in the period that has actuals. The ledger holds one period per month, so this equals the full month. Blank for future periods.
@@ -165,7 +164,7 @@ table _Measures
 			    [Actual],
 			    CALCULATETABLE ( DATESMTD ( 'Date'[Date] ), 'Date'[Has Actuals] = TRUE )
 			)
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 3. Time Intelligence
 
 	/// Actual quarter to date, up to the last date in the period that has actuals. Blank for future periods.
@@ -174,7 +173,7 @@ table _Measures
 			    [Actual],
 			    CALCULATETABLE ( DATESQTD ( 'Date'[Date] ), 'Date'[Has Actuals] = TRUE )
 			)
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 3. Time Intelligence
 
 	/// Actual year to date (the fiscal year is the calendar year), up to the last date in the period that has actuals. Blank for future periods.
@@ -183,7 +182,7 @@ table _Measures
 			    [Actual],
 			    CALCULATETABLE ( DATESYTD ( 'Date'[Date] ), 'Date'[Has Actuals] = TRUE )
 			)
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 3. Time Intelligence
 
 	/// Actual for the same period one year earlier, like for like: only the dates that have actuals in the current period are shifted back, so a part-finished year is compared with the same months of the prior year. Blank for 2024 and for future periods.
@@ -192,7 +191,7 @@ table _Measures
 			    [Actual],
 			    CALCULATETABLE ( DATEADD ( 'Date'[Date], -1, YEAR ), 'Date'[Has Actuals] = TRUE )
 			)
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 3. Time Intelligence
 
 	/// Actual year to date for the prior year, to the same point in the year as Actual YTD.
@@ -205,7 +204,7 @@ table _Measures
 			        YEAR
 			    )
 			)
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 3. Time Intelligence
 
 	/// Year-on-year change: Actual less Actual PY, profit-impact sign, so positive is favourable (more revenue or less cost). Blank when either side is blank.
@@ -214,12 +213,12 @@ table _Measures
 			VAR _PriorYear = [Actual PY]
 			RETURN
 			    IF ( NOT ISBLANK ( _Actual ) && NOT ISBLANK ( _PriorYear ), _Actual - _PriorYear )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 3. Time Intelligence
 
 	/// Year-on-year change as a share of the absolute prior-year amount. Positive is favourable for revenue and for costs.
 	measure 'YoY %' = DIVIDE ( [YoY], ABS ( [Actual PY] ) )
-		formatString: 0.0%
+		formatString: #,0.0%;-#,0.0%;#,0.0%
 		displayFolder: 3. Time Intelligence
 
 	/// Year-to-date change against the prior year to date, as a share of the absolute prior-year amount. Positive is favourable.
@@ -227,7 +226,7 @@ table _Measures
 			VAR _PriorYear = [Actual PY YTD]
 			RETURN
 			    DIVIDE ( [Actual YTD] - _PriorYear, ABS ( _PriorYear ) )
-		formatString: 0.0%
+		formatString: #,0.0%;-#,0.0%;#,0.0%
 		displayFolder: 3. Time Intelligence
 
 	/// Actual for the 12 months ending with the last month in the period that has actuals. Blank where fewer than 12 months of history exist and for future periods.
@@ -240,7 +239,7 @@ table _Measures
 			        NOT ISBLANK ( _LastDate ) && _Start >= _FirstDate,
 			        CALCULATE ( [Actual], DATESBETWEEN ( 'Date'[Date], _Start, _LastDate ) )
 			    )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 3. Time Intelligence
 
 	/// Actual for the 12 months that end one year before the last month in the period that has actuals. Blank where fewer than 24 months of history exist.
@@ -254,7 +253,7 @@ table _Measures
 			        NOT ISBLANK ( _LastDate ) && _Start >= _FirstDate,
 			        CALCULATE ( [Actual], DATESBETWEEN ( 'Date'[Date], _Start, _End ) )
 			    )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 3. Time Intelligence
 
 	/// Budget year to date, up to the last date in the period that has actuals, so it compares like for like with Actual YTD. Blank for future periods.
@@ -263,42 +262,42 @@ table _Measures
 			    [Budget],
 			    CALCULATETABLE ( DATESYTD ( 'Date'[Date] ), 'Date'[Has Actuals] = TRUE )
 			)
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 3. Time Intelligence
 
 	/// Budget for the same period one year earlier (the full period, including months without actuals).
 	measure 'Budget PY' = CALCULATE ( [Budget], SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 3. Time Intelligence
 
 	/// Actual less Budget for closed periods, profit-impact sign: positive is favourable (more revenue or less cost than budget).
 	measure 'Var to Budget' = [Actual] - [Budget (Closed Periods)]
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 4. Budget Variance
 
 	/// Variance to budget as a share of the absolute budget for closed periods. Positive is favourable.
 	measure 'Var to Budget %' = DIVIDE ( [Var to Budget], ABS ( [Budget (Closed Periods)] ) )
-		formatString: 0.0%
+		formatString: #,0.0%;-#,0.0%;#,0.0%
 		displayFolder: 4. Budget Variance
 
 	/// Actual YTD less Budget YTD, profit-impact sign: positive is favourable.
 	measure 'Var to Budget YTD' = [Actual YTD] - [Budget YTD]
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 4. Budget Variance
 
 	/// Year-to-date variance to budget as a share of the absolute Budget YTD. Positive is favourable.
 	measure 'Var to Budget YTD %' = DIVIDE ( [Var to Budget YTD], ABS ( [Budget YTD] ) )
-		formatString: 0.0%
+		formatString: #,0.0%;-#,0.0%;#,0.0%
 		displayFolder: 4. Budget Variance
 
 	/// Revenue variance to budget for closed periods: positive means revenue above budget.
 	measure 'Revenue Var to Budget' = CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[P&L Group L1] = "Revenue" ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 4. Budget Variance
 
 	/// EBITDA variance to budget for closed periods: positive means EBITDA above budget.
 	measure 'EBITDA Var to Budget' = CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[In EBITDA] = 1 ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 4. Budget Variance
 
 	/// Forecast in GBP, ledger sign (debit positive). Converts each month and currency at the forecast rate: the average rate up to the last month with actuals, then that rate held flat.
@@ -310,35 +309,35 @@ table _Measures
 			    ),
 			    'Scenario'[Scenario Name] = "Forecast"
 			)
-		formatString: #,##0
+		formatString: #,0
 		isHidden
 		displayFolder: 0. Base
 
 	/// Forecast in GBP, profit-impact sign: revenue positive, costs negative. Exists for FY2026 only: January to October equal actuals, November and December are projected.
 	measure Forecast = -1 * [Forecast Ledger GBP]
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 1. Scenario
 
 	/// Full-year budget for the fiscal year or years in the period, whichever months are selected.
 	measure 'Budget FY' = CALCULATE ( [Budget], REMOVEFILTERS ( 'Date' ), VALUES ( 'Date'[Year] ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 5. Forecast
 
 	/// Full-year forecast for the fiscal year or years in the period, whichever months are selected. Blank for years without a forecast.
 	measure 'Forecast FY' = CALCULATE ( [Forecast], REMOVEFILTERS ( 'Date' ), VALUES ( 'Date'[Year] ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 5. Forecast
 
 	/// Forecast for the months in the period that have no actuals yet.
 	measure 'Forecast Remaining' = CALCULATE ( [Forecast], KEEPFILTERS ( 'Date'[Has Actuals] = FALSE ) )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 5. Forecast
 
 	/// Full-year outlook for the fiscal year in the period: actuals for closed months plus forecast for the remaining months. For a closed year this is the actual full year.
 	measure 'Actual YTD + Forecast Remaining' =
 			CALCULATE ( [Actual], REMOVEFILTERS ( 'Date' ), VALUES ( 'Date'[Year] ), 'Date'[Has Actuals] = TRUE )
 			    + CALCULATE ( [Forecast], REMOVEFILTERS ( 'Date' ), VALUES ( 'Date'[Year] ), 'Date'[Has Actuals] = FALSE )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 5. Forecast
 
 	/// Full-year forecast less full-year budget, profit-impact sign: positive is favourable. Blank for years without a forecast.
@@ -346,12 +345,12 @@ table _Measures
 			VAR _Forecast = [Forecast FY]
 			RETURN
 			    IF ( NOT ISBLANK ( _Forecast ), _Forecast - [Budget FY] )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 5. Forecast
 
 	/// Full-year forecast variance to budget as a share of the absolute full-year budget. Positive is favourable.
 	measure 'Forecast vs Budget FY %' = DIVIDE ( [Forecast vs Budget FY], ABS ( [Budget FY] ) )
-		formatString: 0.0%
+		formatString: #,0.0%;-#,0.0%;#,0.0%
 		displayFolder: 5. Forecast
 
 	/// Full-year forecast against the prior year's full-year actual, as a share of the absolute prior-year amount. Positive is favourable.
@@ -366,7 +365,7 @@ table _Measures
 			    )
 			RETURN
 			    IF ( NOT ISBLANK ( _Forecast ), DIVIDE ( _Forecast - _PriorYear, ABS ( _PriorYear ) ) )
-		formatString: 0.0%
+		formatString: #,0.0%;-#,0.0%;#,0.0%
 		displayFolder: 5. Forecast
 
 	/// Actuals in GBP converted at budget rates instead of average rates, profit-impact sign. Removes the FX effect from the comparison with budget.
@@ -376,17 +375,17 @@ table _Measures
 			        SUMMARIZE ( 'GL', 'Date'[Month Start], 'Currency'[Currency Code] ),
 			        [Actual Local] * CALCULATE ( MAX ( 'FX Rates'[Budget Rate To GBP] ) )
 			    )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 6. Constant Currency
 
 	/// Part of the variance to budget caused by exchange rates: Actual less Actual at Budget Rates. Positive is favourable.
 	measure 'FX Var to Budget' = [Actual] - [Actual at Budget Rates]
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 6. Constant Currency
 
 	/// Variance to budget at constant currency: Actual at Budget Rates less Budget for closed periods. Positive is favourable. FX Var to Budget plus this equals Var to Budget.
 	measure 'Operational Var to Budget' = [Actual at Budget Rates] - [Budget (Closed Periods)]
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 6. Constant Currency
 
 	/// Actuals in GBP converted at the average rate of the same month one year earlier, profit-impact sign. Blank for 2024, which has no prior-year rates.
@@ -396,7 +395,7 @@ table _Measures
 			        SUMMARIZE ( 'GL', 'Date'[Month Start], 'Currency'[Currency Code] ),
 			        [Actual Local] * CALCULATE ( MAX ( 'FX Rates'[Prior Year Avg Rate To GBP] ) )
 			    )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 6. Constant Currency
 
 	/// Year-on-year change at constant currency: Actual at PY Rates less Actual PY. Positive is favourable. Blank when either side is blank.
@@ -405,12 +404,12 @@ table _Measures
 			VAR _PriorYear = [Actual PY]
 			RETURN
 			    IF ( NOT ISBLANK ( _Constant ) && NOT ISBLANK ( _PriorYear ), _Constant - _PriorYear )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 6. Constant Currency
 
 	/// Year-on-year change at constant currency as a share of the absolute prior-year amount. Positive is favourable.
 	measure 'YoY % CC' = DIVIDE ( [YoY CC], ABS ( [Actual PY] ) )
-		formatString: 0.0%
+		formatString: #,0.0%;-#,0.0%;#,0.0%
 		displayFolder: 6. Constant Currency
 
 	/// Part of the year-on-year change caused by exchange rates: Actual less Actual at PY Rates. Positive is favourable. YoY CC plus this equals YoY.
@@ -418,7 +417,7 @@ table _Measures
 			VAR _Constant = [Actual at PY Rates]
 			RETURN
 			    IF ( NOT ISBLANK ( _Constant ), [Actual] - _Constant )
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 6. Constant Currency
 
 	/// Actuals by posting date, month to date: journal lines posted from the first of the month to the last date in the period, whatever accounting period they belong to. Each line converts at the average rate of its own accounting period.
@@ -440,12 +439,13 @@ table _Measures
 			    DATESMTD ( 'Date'[Date] ),
 			    USERELATIONSHIP ( 'GL'[Posting Date], 'Date'[Date] )
 			)
-		formatString: #,##0
+		formatString: #,0
 		displayFolder: 3. Time Intelligence
 
 	column Value
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		isNameInferred
 		sourceColumn: [Value]

@@ -4,6 +4,7 @@ table 'Cost Centre'
 	column 'Cost Centre Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		isKey
 		summarizeBy: none
 		sourceColumn: Cost Centre Key
@@ -36,6 +37,7 @@ table 'Cost Centre'
 	column 'Entity Key'
 		dataType: int64
 		isHidden
+		isAvailableInMdx: false
 		summarizeBy: none
 		sourceColumn: Entity Key
 
