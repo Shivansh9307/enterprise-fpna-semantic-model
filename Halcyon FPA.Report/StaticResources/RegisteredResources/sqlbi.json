@@ -3,32 +3,20 @@
   "name": "sqlbi",
   "dataColors": [
     "#1971c2",
-    "#f08c00",
-    "#2f9e44",
-    "#e03131",
-    "#6741d9",
+    "#868e96",
+    "#74c0fc",
+    "#343a40",
     "#0c8599",
-    "#c2255c",
+    "#6741d9",
     "#846358",
-    "#e8590c",
-    "#9c36b5",
-    "#099268",
-    "#333333",
-    "#ffc9c9",
-    "#ffd8a8",
-    "#ffec99",
-    "#96f2d7",
-    "#b2f2bb",
-    "#fcc2d7",
-    "#eebefa",
-    "#d0bfff"
+    "#adb5bd"
   ],
   "good": "#1971c2",
-  "neutral": "#404040",
-  "bad": "#c2255c",
+  "neutral": "#868e96",
+  "bad": "#e8590c",
   "maximum": "#1971c2",
-  "center": "#F0F0F0",
-  "minimum": "#c2255c",
+  "center": "#ffffff",
+  "minimum": "#e8590c",
   "null": "#f08c00",
   "firstLevelElements": "#f1f1f1",
   "secondLevelElements": "#f2f2f2",
@@ -1127,7 +1115,7 @@
         ],
         "categoryLabels": [
           {
-            "show": true,
+            "show": false,
             "color": {
               "solid": {
                 "color": "#868e96"
@@ -1150,7 +1138,7 @@
               }
             },
             "fontFamily": "Segoe UI Semibold",
-            "fontSize": 36,
+            "fontSize": 10,
             "labelPrecision": 1,
             "preserveWhitespace": false,
             "bold": false,
@@ -1207,7 +1195,7 @@
           {
             "showDistance": true,
             "showGoal": true,
-            "fontSize": 16,
+            "fontSize": 10,
             "titleFontSize": 16,
             "labelPrecision": 0,
             "direction": "High is good",
@@ -1224,7 +1212,7 @@
               }
             },
             "goalFontFamily": "Segoe UI",
-            "goalText": "Target",
+            "goalText": "Budget",
             "bold": false,
             "italic": false,
             "underline": false,
@@ -1237,7 +1225,7 @@
           {
             "showIcon": true,
             "fontFamily": "Segoe UI Semibold",
-            "fontSize": 42,
+            "fontSize": 26,
             "iconSize": 21,
             "bold": false,
             "italic": false,
@@ -1247,7 +1235,7 @@
                 "color": "#868e96"
               }
             },
-            "indicatorDisplayUnits": 0,
+            "indicatorDisplayUnits": 1000000,
             "indicatorPrecision": 1,
             "horizontalAlignment": "center",
             "verticalAlignment": "middle"
