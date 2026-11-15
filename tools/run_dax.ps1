@@ -10,6 +10,11 @@ and to request a refresh is a .NET Framework build:
     powershell.exe -NoProfile -File tools\run_dax.ps1 -Filter "stage2_*.dax"
     powershell.exe -NoProfile -File tools\run_dax.ps1 -Filter "stage2_*.dax" -Refresh
 
+-Roles and -User run the queries under row-level security, for example
+    -Roles "Entity Finance" -User "de.fpa@halcyon.example" -OutSuffix "_entity_de"
+-Roles alone applies the role to your own Windows identity. -User needs -Roles. The local engine rejects EffectiveUserName,
+so -User uses the ActAs authentication scheme, the mechanism Desktop uses for "View as > Other user".
+
 -Refresh asks the engine for a full data refresh first. That leaves Desktop with unsaved changes; nothing is written to the project files.
 Needs: Power BI Desktop with Halcyon FPA.pbip open, DAX Studio, and Tabular Editor 2 (for its Microsoft.AnalysisServices.Tabular.dll).
 #>
@@ -20,6 +25,9 @@ param(
     [string]$WindowTitle = "Halcyon FPA*",
     [string]$DscmdPath = (Join-Path $env:LOCALAPPDATA "Programs\DAX Studio\dscmd.exe"),
     [string]$TomDir = "",
+    [string]$Roles = "",
+    [string]$User = "",
+    [string]$OutSuffix = "",
     [switch]$Refresh
 )
 $ErrorActionPreference = "Stop"
@@ -54,17 +62,25 @@ try {
 }
 finally { $tom.Disconnect() }
 
+if ($User -and -not $Roles) { throw "-User needs -Roles: without a role no security filter applies." }
+$connection = "Data Source=$server;Initial Catalog=$database"
+if ($Roles) { $connection += ";Roles=$Roles" }
+if ($User) {
+    $connection += ";Authentication Scheme=ActAs;Ext Auth Info=`"<Properties><UserName>$User</UserName><BypassAuthorization>true</BypassAuthorization><RestrictCatalog>$database</RestrictCatalog></Properties>`""
+}
+$connectionArg = $connection.Replace('"', '\"')
+
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 $files = Get-ChildItem $QueryDir -Filter $Filter | Sort-Object Name
 if (-not $files) { throw "No query files match $QueryDir\$Filter." }
 $failed = 0
 foreach ($file in $files) {
-    $out = Join-Path $OutDir ($file.BaseName + ".csv")
+    $out = Join-Path $OutDir ($file.BaseName + $OutSuffix + ".csv")
     if (Test-Path $out) { Remove-Item $out -Confirm:$false }
     # Windows PowerShell passes embedded double quotes to native programs unescaped, so escape them here.
     $query = (Get-Content $file.FullName -Raw).Replace('"', '\"')
-    $log = & $DscmdPath csv $out -s $server -d $database -q $query 2>&1
-    if (Test-Path $out) { Write-Host "ok      $($file.Name) -> $out" }
+    $log = & $DscmdPath csv $out -c $connectionArg -q $query 2>&1
+    if (Test-Path $out) { Write-Host "ok      $($file.Name)$(if ($Roles) { " as [$Roles] $User" }) -> $out" }
     else { $failed++; Write-Host "FAILED  $($file.Name)"; $log | ForEach-Object { Write-Host "        $_" } }
 }
 if ($failed -gt 0) { exit 1 }

@@ -1,0 +1,28 @@
+/// Dynamic role: a user sees the entities mapped to their sign-in name in User Entity Map. A user with no rows in the map sees nothing. Customer and Cost Centre carry the same filter so that other entities' names do not appear in slicers; the -1 "No customer" row stays visible so that non-revenue lines are kept.
+role 'Entity Finance'
+	modelPermission: read
+
+	tablePermission Entity =
+			'Entity'[Entity Key]
+			    IN CALCULATETABLE (
+			        VALUES ( 'User Entity Map'[Entity Key] ),
+			        'User Entity Map'[User Principal Name] = USERPRINCIPALNAME ( )
+			    )
+
+	tablePermission 'Cost Centre' =
+			'Cost Centre'[Entity Key]
+			    IN CALCULATETABLE (
+			        VALUES ( 'User Entity Map'[Entity Key] ),
+			        'User Entity Map'[User Principal Name] = USERPRINCIPALNAME ( )
+			    )
+
+	tablePermission Customer =
+			'Customer'[Customer Key] = -1
+			    || 'Customer'[Entity Key]
+			        IN CALCULATETABLE (
+			            VALUES ( 'User Entity Map'[Entity Key] ),
+			            'User Entity Map'[User Principal Name] = USERPRINCIPALNAME ( )
+			        )
+
+	tablePermission 'User Entity Map' = 'User Entity Map'[User Principal Name] = USERPRINCIPALNAME ( )
+

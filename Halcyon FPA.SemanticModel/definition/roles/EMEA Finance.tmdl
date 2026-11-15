@@ -1,0 +1,17 @@
+/// Static role: the EMEA entities only (UK01 and DE01). Customer and Cost Centre carry the same restriction so that other entities' names do not appear in slicers; the -1 "No customer" row stays visible so that non-revenue lines are kept. The user map is hidden from this role.
+role 'EMEA Finance'
+	modelPermission: read
+
+	tablePermission Entity = 'Entity'[Region] = "EMEA"
+
+	tablePermission 'Cost Centre' =
+			'Cost Centre'[Entity Key]
+			    IN CALCULATETABLE ( VALUES ( 'Entity'[Entity Key] ), 'Entity'[Region] = "EMEA" )
+
+	tablePermission Customer =
+			'Customer'[Customer Key] = -1
+			    || 'Customer'[Entity Key]
+			        IN CALCULATETABLE ( VALUES ( 'Entity'[Entity Key] ), 'Entity'[Region] = "EMEA" )
+
+	tablePermission 'User Entity Map' = FALSE ( )
+

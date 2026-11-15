@@ -1,0 +1,15 @@
+// Stage 4 check: what one role and user can see. Run once per case by tools/run_rls_tests.ps1. FY2025, synthetic GBP.
+// Compared with an independent pandas recomputation by tools/verify_measures.py.
+EVALUATE
+ROW (
+    "upn", USERPRINCIPALNAME ( ),
+    "entities", CONCATENATEX ( VALUES ( 'Entity'[Entity Code] ), 'Entity'[Entity Code], ",", 'Entity'[Entity Code], ASC ),
+    "revenue_gbp", CALCULATE ( [Revenue], 'Date'[Year] = 2025 ),
+    "ebitda_gbp", CALCULATE ( [EBITDA], 'Date'[Year] = 2025 ),
+    "budget_ebitda_gbp", CALCULATE ( [Budget], 'Date'[Year] = 2025, 'Account'[In EBITDA] = 1 ),
+    "gl_rows", COUNTROWS ( 'GL' ),
+    "plan_rows", COUNTROWS ( 'Plan' ),
+    "customers", COUNTROWS ( 'Customer' ),
+    "cost_centres", COUNTROWS ( 'Cost Centre' ),
+    "map_rows", COUNTROWS ( 'User Entity Map' )
+)

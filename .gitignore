@@ -12,3 +12,6 @@ screenshots/
 .venv/
 __pycache__/
 *.pyc
+
+# Security check run without a role: it records the local Windows account name
+tests/results/stage4_01_role_check.csv

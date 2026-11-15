@@ -1,0 +1,38 @@
+/// Which fictional user may see which entity (synthetic, on the reserved halcyon.example domain). Hidden and disconnected by design: the security roles look it up, and each user sees only their own rows.
+table 'User Entity Map'
+	isHidden
+
+	/// Sign-in name of the user, compared with USERPRINCIPALNAME().
+	column 'User Principal Name'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: User Principal Name
+
+	/// Role the user is expected to be assigned to. Informational: role membership is set in the Power BI service, not here.
+	column 'Role Name'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: Role Name
+
+	/// Entity the user may see.
+	column 'Entity Key'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Entity Key
+
+	partition 'User Entity Map' = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "Dim_UserEntityMap.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"UserPrincipalName", type text}, {"RoleName", type text}, {"EntityKey", Int64.Type}}, "en-US"),
+				    Renamed = Table.RenameColumns(Typed, {{"UserPrincipalName", "User Principal Name"}, {"RoleName", "Role Name"}, {"EntityKey", "Entity Key"}})
+				in
+				    Renamed
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,4 @@
+/// Group finance users (for example the CFO and the controller): no table filters, all four entities.
+role 'Group Finance'
+	modelPermission: read
+

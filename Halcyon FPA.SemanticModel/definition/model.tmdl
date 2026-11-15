@@ -9,7 +9,7 @@ model Model
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["DataFolder","GL","Plan","FX Rates","Account","Entity","Cost Centre","Customer","Currency","Scenario"]
+annotation PBI_QueryOrder = ["DataFolder","GL","Plan","FX Rates","Account","Entity","Cost Centre","Customer","Currency","Scenario","User Entity Map"]
 
 ref table _Measures
 ref table GL
@@ -23,4 +23,9 @@ ref table Customer
 ref table Currency
 ref table Scenario
 ref table 'P&L Line'
+ref table 'User Entity Map'
+
+ref role 'Group Finance'
+ref role 'Entity Finance'
+ref role 'EMEA Finance'
 

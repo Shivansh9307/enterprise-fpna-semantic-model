@@ -254,6 +254,84 @@ def check_identities():
     return failed
 
 
+RLS_CASES = {  # case -> (roles, user); must match tools/run_rls_tests.ps1
+    "group_cfo": (["Group Finance"], "cfo@halcyon.example"),
+    "entity_cfo": (["Entity Finance"], "cfo@halcyon.example"),
+    "entity_controller": (["Entity Finance"], "controller@halcyon.example"),
+    "entity_uk": (["Entity Finance"], "uk.fpa@halcyon.example"),
+    "entity_us": (["Entity Finance"], "us.fpa@halcyon.example"),
+    "entity_de": (["Entity Finance"], "de.fpa@halcyon.example"),
+    "entity_in": (["Entity Finance"], "in.fpa@halcyon.example"),
+    "entity_unmapped": (["Entity Finance"], "nobody@halcyon.example"),
+    "emea_uk": (["EMEA Finance"], "uk.fpa@halcyon.example"),
+    "emea_unmapped": (["EMEA Finance"], "nobody@halcyon.example"),
+    "entity_emea_us": (["Entity Finance", "EMEA Finance"], "us.fpa@halcyon.example"),  # roles add up: US01 plus EMEA
+}
+# FY2025 EBITDA by entity as supplied by the project owner, a second reference besides the pandas recomputation
+OWNER_EBITDA = {"entity_uk": -781112.52, "entity_us": -925483.09, "entity_de": 3333287.55, "entity_in": 3091822.01}
+
+
+def check_rls(frames):
+    """Each role and user case against what pandas says that role should see. FY2025, synthetic GBP."""
+    actual, budget, _ = frames
+    ent = pd.read_csv(DATA / "Dim_Entity.csv")
+    umap = pd.read_csv(DATA / "Dim_UserEntityMap.csv")
+    cust = pd.read_csv(DATA / "Dim_Customer.csv")
+    cc = pd.read_csv(DATA / "Dim_CostCentre.csv")
+    plan = pd.read_csv(DATA / "Fact_Plan.csv")
+    code = ent.set_index("EntityKey")["EntityCode"]
+    fy = lambda d: d.PeriodDate.dt.year == 2025
+    blank = lambda v: v if v else None  # the model returns blank, not zero, when nothing is visible
+    money = lambda v: "blank" if v is None else f"{v:,.2f}"
+    failed = 0
+    for case, (roles, user) in RLS_CASES.items():
+        keys, map_rows = set(), 0
+        mine = umap[umap.UserPrincipalName.str.lower() == user.lower()]
+        for role in roles:
+            if role == "Group Finance":
+                keys |= set(ent.EntityKey)
+                map_rows = len(umap)
+            elif role == "Entity Finance":
+                keys |= set(mine.EntityKey)
+                map_rows = max(map_rows, len(mine))
+            elif role == "EMEA Finance":
+                keys |= set(ent[ent.Region == "EMEA"].EntityKey)
+        a, b = actual[actual.EntityKey.isin(keys)], budget[budget.EntityKey.isin(keys)]
+        want = {
+            "entities": ",".join(sorted(code[k] for k in keys)) or None,
+            "revenue_gbp": blank(a[fy(a) & (a.PLGroupL1 == "Revenue")].gbp.sum()),
+            "ebitda_gbp": blank(a[fy(a) & (a.InEBITDA == 1)].gbp.sum()),
+            "budget_ebitda_gbp": blank(b[fy(b) & (b.InEBITDA == 1)].gbp.sum()),
+            "gl_rows": blank(len(a)),
+            "plan_rows": blank(int(plan.EntityKey.isin(keys).sum())),
+            "customers": 1 + int(cust.EntityKey.isin(keys).sum()),  # the -1 "No customer" row is always visible
+            "cost_centres": blank(int(cc.EntityKey.isin(keys).sum())),
+            "map_rows": blank(map_rows),
+        }
+        row = pd.read_csv(RESULTS / f"stage4_01_role_check_{case}.csv").iloc[0]
+        problems = []
+        if str(row["upn"]).lower() != user.lower():
+            problems.append(f"upn: model ran as {row['upn']}, not {user}")
+        for k, w in want.items():
+            g = None if pd.isna(row[k]) else row[k]
+            if k == "entities":
+                bad = g != w
+            else:
+                g = None if g is None else float(g)
+                bad = differs(k, g, None if w is None else float(w))
+            if bad:
+                problems.append(f"{k}: model {g} vs pandas {w}")
+        if case in OWNER_EBITDA and abs(float(row["ebitda_gbp"]) - OWNER_EBITDA[case]) > 0.005:
+            problems.append(f"ebitda_gbp: model {row['ebitda_gbp']} vs owner figure {OWNER_EBITDA[case]}")
+        failed += bool(problems)
+        print(f"{'PASS' if not problems else 'FAIL'}  {case}: [{', '.join(roles)}] {user} sees {want['entities'] or 'nothing'}; "
+              f"revenue {money(want['revenue_gbp'])}, EBITDA {money(want['ebitda_gbp'])}, budget EBITDA {money(want['budget_ebitda_gbp'])}, "
+              f"customers {want['customers']}, cost centres {want['cost_centres'] or 0}, map rows {want['map_rows'] or 0}")
+        for pr in problems:
+            print("    " + pr)
+    return failed
+
+
 HEADLINES = ["revenue_gbp", "cost_of_sales_gbp", "gross_profit_gbp", "gross_margin_pct", "ebitda_gbp", "ebitda_margin_pct"]
 
 
@@ -293,10 +371,10 @@ def check_expected(stage):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--stage", type=int, choices=[1, 2, 3], help="check one stage only")
+    ap.add_argument("--stage", type=int, choices=[1, 2, 3, 4], help="check one stage only")
     args = ap.parse_args()
-    stages = [args.stage] if args.stage else [1, 2, 3]
-    frames = load() if set(stages) & {2, 3} else None
+    stages = [args.stage] if args.stage else [1, 2, 3, 4]
+    frames = load() if set(stages) & {2, 3, 4} else None
     failed = 0
     for stage in stages:
         if stage in (1, 2):
@@ -310,6 +388,9 @@ def main():
             failed += check_daily_posted(frames)
             print("--- stage 3: reconciliations inside the model output")
             failed += check_identities()
+        if stage == 4:
+            print("--- stage 4: row-level security, each role and user against pandas (FY2025, synthetic GBP)")
+            failed += check_rls(frames)
     print(f"\n{'ALL CHECKS PASSED' if not failed else str(failed) + ' CHECK(S) FAILED'}")
     return 1 if failed else 0
 
