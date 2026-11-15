@@ -8,7 +8,6 @@ data/*.csv
 # Claude Code and tooling
 .claude/
 CLAUDE.md
-screenshots/
 .venv/
 __pycache__/
 *.pyc
