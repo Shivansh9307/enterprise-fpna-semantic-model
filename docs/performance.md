@@ -39,14 +39,13 @@ Largest `GL` columns after the changes:
 | Column | Size | Note |
 |---|---:|---|
 | `Amount Local` | 1,231 KB | 133,112 distinct values; the only amount column |
-| `Journal ID` | 1,058 KB | 15,137 distinct values; hidden, not used by any measure |
+| `Journal ID` | 1,058 KB | 15,137 distinct values; hidden, not used by any measure. Removed after this measurement |
 | `Customer Key` | 523 KB | relationship key |
 | `Posting Date` | 403 KB | inactive relationship, used by `Posted MTD` |
 | `Description` | 50 KB | 407 distinct values; hidden, not used by any measure |
 
-**Open decision, `Journal ID` and `Description`:** together they cost about 1.1 MB, almost all of it `Journal ID`
-(24% of the ledger table). They are worth keeping only if the report gets a journal drill-through page. They are still in
-the model, hidden; the best-practice analysis lists both as unnecessary until something uses them.
+**Decision, `Journal ID` and `Description`:** `Journal ID` (1,058 KB, 24% of the ledger table, used by nothing) was removed after
+these measurements; `Description` (50 KB) is kept, hidden. The sizes on this page are from before that removal.
 
 ## Query timings
 
@@ -134,7 +133,7 @@ Left as they are, on purpose:
 | Do not use floating point data types | 4 | FX rates have six decimals; a fixed decimal type keeps four |
 | Reduce usage of calculated tables | 3 | `Date`, `P&L Line` and `_Measures`: a few hundred rows in total |
 | Minimize Power Query transformations | 3 | The source is local CSV files, so there is no query folding to protect |
-| Remove unnecessary columns | 3 | `GL[Journal ID]` and `GL[Description]` (open decision above); `_Measures[Value]` is the placeholder a measure table needs |
+| Remove unnecessary columns | 3 | `GL[Journal ID]` (since removed) and `GL[Description]` (kept by decision); `_Measures[Value]` is the placeholder a measure table needs |
 | Remove roles with no members | 3 | Members are assigned in the Power BI service, not in the project files |
 | Ensure tables have relationships | 3 | `P&L Line`, `User Entity Map` and `_Measures` are disconnected by design |
 | Whole numbers should be formatted with thousands separators | 3 | Two hidden local-currency measures show two decimals; `Last Actual Period` is a date |

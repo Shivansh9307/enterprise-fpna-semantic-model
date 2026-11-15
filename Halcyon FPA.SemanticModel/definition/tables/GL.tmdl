@@ -1,14 +1,6 @@
 /// General ledger journal lines for P&L accounts (synthetic data). Grain: one journal line. Amounts are in local currency with ledger sign (debit positive), so revenue is negative. The accounting period is Period Date, not Posting Date.
 table GL
 
-	/// Journal identifier. Hidden; kept for a possible journal drill-through, to be reviewed after VertiPaq Analyzer.
-	column 'Journal ID'
-		dataType: string
-		isHidden
-		isAvailableInMdx: false
-		summarizeBy: none
-		sourceColumn: Journal ID
-
 	/// Date the line was posted. About 1.5% of lines are late adjustments posted in the month after their period. Hidden; related to Date through an inactive relationship.
 	column 'Posting Date'
 		dataType: dateTime
@@ -72,7 +64,7 @@ table GL
 		summarizeBy: none
 		sourceColumn: Amount Local
 
-	/// Journal line description. Hidden; kept for a possible journal drill-through, to be reviewed after VertiPaq Analyzer.
+	/// Journal line description. Hidden; kept for journal-level detail (407 distinct values, about 50 KB).
 	column Description
 		dataType: string
 		isHidden
@@ -99,11 +91,11 @@ table GL
 				let
 				    Source = Csv.Document(File.Contents(DataFolder & "Fact_GL.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
 				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
-				    Selected = Table.SelectColumns(Promoted, {"JournalID", "PostingDate", "PeriodDate", "EntityKey", "AccountKey", "CostCentreKey", "CustomerKey", "CurrencyCode", "AmountLocal", "Description", "SourceSystem", "IsAdjustment"}),
-				    Typed = Table.TransformColumnTypes(Selected, {{"JournalID", type text}, {"PostingDate", type date}, {"PeriodDate", type date}, {"EntityKey", Int64.Type}, {"AccountKey", Int64.Type}, {"CostCentreKey", Int64.Type}, {"CustomerKey", Int64.Type}, {"CurrencyCode", type text}, {"AmountLocal", Currency.Type}, {"Description", type text}, {"SourceSystem", type text}, {"IsAdjustment", Int64.Type}}, "en-US"),
+				    Selected = Table.SelectColumns(Promoted, {"PostingDate", "PeriodDate", "EntityKey", "AccountKey", "CostCentreKey", "CustomerKey", "CurrencyCode", "AmountLocal", "Description", "SourceSystem", "IsAdjustment"}),
+				    Typed = Table.TransformColumnTypes(Selected, {{"PostingDate", type date}, {"PeriodDate", type date}, {"EntityKey", Int64.Type}, {"AccountKey", Int64.Type}, {"CostCentreKey", Int64.Type}, {"CustomerKey", Int64.Type}, {"CurrencyCode", type text}, {"AmountLocal", Currency.Type}, {"Description", type text}, {"SourceSystem", type text}, {"IsAdjustment", Int64.Type}}, "en-US"),
 				    NoCustomer = Table.ReplaceValue(Typed, null, -1, Replacer.ReplaceValue, {"CustomerKey"}),
 				    AdjustmentFlag = Table.TransformColumns(NoCustomer, {{"IsAdjustment", each _ = 1, type logical}}),
-				    Renamed = Table.RenameColumns(AdjustmentFlag, {{"JournalID", "Journal ID"}, {"PostingDate", "Posting Date"}, {"PeriodDate", "Period Date"}, {"EntityKey", "Entity Key"}, {"AccountKey", "Account Key"}, {"CostCentreKey", "Cost Centre Key"}, {"CustomerKey", "Customer Key"}, {"CurrencyCode", "Currency Code"}, {"AmountLocal", "Amount Local"}, {"SourceSystem", "Source System"}, {"IsAdjustment", "Is Adjustment"}})
+				    Renamed = Table.RenameColumns(AdjustmentFlag, {{"PostingDate", "Posting Date"}, {"PeriodDate", "Period Date"}, {"EntityKey", "Entity Key"}, {"AccountKey", "Account Key"}, {"CostCentreKey", "Cost Centre Key"}, {"CustomerKey", "Customer Key"}, {"CurrencyCode", "Currency Code"}, {"AmountLocal", "Amount Local"}, {"SourceSystem", "Source System"}, {"IsAdjustment", "Is Adjustment"}})
 				in
 				    Renamed
 
