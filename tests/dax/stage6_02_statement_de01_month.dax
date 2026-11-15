@@ -1,0 +1,16 @@
+// Stage 6 check: the P&L statement measures by statement line for entity DE01 in three single months. Synthetic GBP.
+// Compared with an independent pandas recomputation by tools/verify_measures.py.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Line'[Line Key],
+    'P&L Line'[Line],
+    'Date'[Year Month Key],
+    TREATAS ( { "DE01" }, 'Entity'[Entity Code] ),
+    TREATAS ( { 202408, 202508, 202608 }, 'Date'[Year Month Key] ),
+    "P&L Value", [P&L Value],
+    "P&L Budget", [P&L Budget],
+    "P&L Var to Budget", [P&L Var to Budget],
+    "P&L Var to Budget %", [P&L Var to Budget %],
+    "P&L Actual PY", [P&L Actual PY]
+)
+ORDER BY 'Date'[Year Month Key], 'P&L Line'[Line Key]

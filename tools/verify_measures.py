@@ -332,6 +332,57 @@ def check_rls(frames):
     return failed
 
 
+STATEMENT_LINES = {  # line key -> (account filter, costs shown positive)
+    1: (lambda d: d.PLGroupL1 == "Revenue", False),
+    2: (lambda d: d.PLGroupL1 == "Cost of Sales", True),
+    3: (lambda d: d.PLGroupL1.isin(["Revenue", "Cost of Sales"]), False),
+    4: (lambda d: d.PLGroupL1 == "Operating Expenses", True),
+    5: (lambda d: d.InEBITDA == 1, False),
+    6: (lambda d: d.PLGroupL1 == "Depreciation and Amortisation", True),
+    7: (lambda d: d.PLGroupL1.isin(["Revenue", "Cost of Sales", "Operating Expenses", "Depreciation and Amortisation"]), False),
+    8: (lambda d: d.PLGroupL1 == "Finance Items", True),
+    9: (lambda d: d.PLGroupL1 != "Tax", False),
+    10: (lambda d: d.PLGroupL1 == "Tax", True),
+    11: (lambda d: d.PLGroupL1.notna(), False),
+}
+STATEMENT_FILES = {  # result file -> (context column, context kind, entity filter)
+    "stage6_01_statement_yearly": ("Year", "year", None),
+    "stage6_02_statement_de01_month": ("Year Month Key", "month", "DE01"),
+}
+
+
+def check_statement(name, frames):
+    """P&L statement measures: each line is an account filter, costs shown positive, variance favourable-positive."""
+    key_col, kind, entity = STATEMENT_FILES[name]
+    dax = pd.read_csv(RESULTS / f"{name}.csv")
+    compared = failed = 0
+    problems = []
+    for line, (accounts, cost) in STATEMENT_LINES.items():
+        mask = (lambda d, f=accounts: f(d) & (d.EntityCode == entity)) if entity else accounts
+        s = series_for(frames, mask)
+        sign = -1.0 if cost else 1.0
+        flip = lambda v: None if v is None else sign * v
+        for _, row in dax[dax["Line Key"] == line].iterrows():
+            m = stage2_measures(context(kind, row[key_col]), s)
+            budget = flip(m["Budget (Closed Periods)"])
+            want = {"P&L Value": flip(m["Actual"]), "P&L Budget": budget, "P&L Var to Budget": m["Var to Budget"],
+                    "P&L Var to Budget %": ratio(m["Var to Budget"], budget), "P&L Actual PY": flip(m["Actual PY"])}
+            for k, w in want.items():
+                got = None if pd.isna(row[k]) else float(row[k])
+                compared += 1
+                if differs(k, got, w):
+                    failed += 1
+                    problems.append(f"    line {line} {row['Line']} | {row[key_col]} | {k}: model {got} vs pandas {w}")
+    expected_rows = len(STATEMENT_LINES) * 3
+    if len(dax) != expected_rows:
+        failed += 1
+        problems.append(f"    {len(dax)} rows in the model output, expected {expected_rows}")
+    print(f"{'PASS' if not failed else 'FAIL'}  {name}: {len(dax)} rows, {compared} values compared, {failed} failed")
+    if problems:
+        print("\n".join(problems[:15]))
+    return failed
+
+
 HEADLINES = ["revenue_gbp", "cost_of_sales_gbp", "gross_profit_gbp", "gross_margin_pct", "ebitda_gbp", "ebitda_margin_pct"]
 
 
@@ -371,10 +422,10 @@ def check_expected(stage):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--stage", type=int, choices=[1, 2, 3, 4], help="check one stage only")
+    ap.add_argument("--stage", type=int, choices=[1, 2, 3, 4, 6], help="check one stage only")
     args = ap.parse_args()
-    stages = [args.stage] if args.stage else [1, 2, 3, 4]
-    frames = load() if set(stages) & {2, 3, 4} else None
+    stages = [args.stage] if args.stage else [1, 2, 3, 4, 6]
+    frames = load() if set(stages) & {2, 3, 4, 6} else None
     failed = 0
     for stage in stages:
         if stage in (1, 2):
@@ -391,6 +442,10 @@ def main():
         if stage == 4:
             print("--- stage 4: row-level security, each role and user against pandas (FY2025, synthetic GBP)")
             failed += check_rls(frames)
+        if stage == 6:
+            print("--- stage 6: P&L statement measures against pandas (synthetic GBP)")
+            for name in STATEMENT_FILES:
+                failed += check_statement(name, frames)
     print(f"\n{'ALL CHECKS PASSED' if not failed else str(failed) + ' CHECK(S) FAILED'}")
     return 1 if failed else 0
 

@@ -1,0 +1,14 @@
+// Stage 6 check: the P&L statement measures by statement line and year, all entities. Synthetic GBP.
+// Compared with an independent pandas recomputation by tools/verify_measures.py.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Line'[Line Key],
+    'P&L Line'[Line],
+    'Date'[Year],
+    "P&L Value", [P&L Value],
+    "P&L Budget", [P&L Budget],
+    "P&L Var to Budget", [P&L Var to Budget],
+    "P&L Var to Budget %", [P&L Var to Budget %],
+    "P&L Actual PY", [P&L Actual PY]
+)
+ORDER BY 'Date'[Year], 'P&L Line'[Line Key]

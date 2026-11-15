@@ -151,7 +151,7 @@ table _Measures
 			    11, [Net Profit]
 			)
 		formatString: #,0
-		displayFolder: 2. P&L
+		displayFolder: 7. P&L Statement
 
 	/// Budget in GBP for closed periods only (months that have actuals), profit-impact sign. Use it to compare like for like with Actual when the period includes future months.
 	measure 'Budget (Closed Periods)' = CALCULATE ( [Budget], KEEPFILTERS ( 'Date'[Has Actuals] = TRUE ) )
@@ -441,6 +441,68 @@ table _Measures
 			)
 		formatString: #,0
 		displayFolder: 3. Time Intelligence
+
+	/// Budget for closed periods for the P&L Line on rows, in the same presentation as P&L Value: costs are positive, subtotals are profits. Blank unless exactly one P&L Line is in scope.
+	measure 'P&L Budget' =
+			SWITCH (
+			    SELECTEDVALUE ( 'P&L Line'[Line Key] ),
+			    1, CALCULATE ( [Budget (Closed Periods)], KEEPFILTERS ( 'Account'[P&L Group L1] = "Revenue" ) ),
+			    2, -1 * CALCULATE ( [Budget (Closed Periods)], KEEPFILTERS ( 'Account'[P&L Group L1] = "Cost of Sales" ) ),
+			    3, CALCULATE ( [Budget (Closed Periods)], KEEPFILTERS ( 'Account'[P&L Group L1] IN { "Revenue", "Cost of Sales" } ) ),
+			    4, -1 * CALCULATE ( [Budget (Closed Periods)], KEEPFILTERS ( 'Account'[P&L Group L1] = "Operating Expenses" ) ),
+			    5, CALCULATE ( [Budget (Closed Periods)], KEEPFILTERS ( 'Account'[In EBITDA] = 1 ) ),
+			    6, -1 * CALCULATE ( [Budget (Closed Periods)], KEEPFILTERS ( 'Account'[P&L Group L1] = "Depreciation and Amortisation" ) ),
+			    7, CALCULATE ( [Budget (Closed Periods)], KEEPFILTERS ( 'Account'[P&L Group L1] IN { "Revenue", "Cost of Sales", "Operating Expenses", "Depreciation and Amortisation" } ) ),
+			    8, -1 * CALCULATE ( [Budget (Closed Periods)], KEEPFILTERS ( 'Account'[P&L Group L1] = "Finance Items" ) ),
+			    9, CALCULATE ( [Budget (Closed Periods)], KEEPFILTERS ( 'Account'[P&L Group L1] <> "Tax" ) ),
+			    10, -1 * CALCULATE ( [Budget (Closed Periods)], KEEPFILTERS ( 'Account'[P&L Group L1] = "Tax" ) ),
+			    11, [Budget (Closed Periods)]
+			)
+		formatString: #,0
+		displayFolder: 7. P&L Statement
+
+	/// Variance to budget for closed periods for the P&L Line on rows. Positive is favourable on every line: more revenue or profit, or less cost, than budget. Blank unless exactly one P&L Line is in scope.
+	measure 'P&L Var to Budget' =
+			SWITCH (
+			    SELECTEDVALUE ( 'P&L Line'[Line Key] ),
+			    1, CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[P&L Group L1] = "Revenue" ) ),
+			    2, CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[P&L Group L1] = "Cost of Sales" ) ),
+			    3, CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[P&L Group L1] IN { "Revenue", "Cost of Sales" } ) ),
+			    4, CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[P&L Group L1] = "Operating Expenses" ) ),
+			    5, CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[In EBITDA] = 1 ) ),
+			    6, CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[P&L Group L1] = "Depreciation and Amortisation" ) ),
+			    7, CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[P&L Group L1] IN { "Revenue", "Cost of Sales", "Operating Expenses", "Depreciation and Amortisation" } ) ),
+			    8, CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[P&L Group L1] = "Finance Items" ) ),
+			    9, CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[P&L Group L1] <> "Tax" ) ),
+			    10, CALCULATE ( [Var to Budget], KEEPFILTERS ( 'Account'[P&L Group L1] = "Tax" ) ),
+			    11, [Var to Budget]
+			)
+		formatString: #,0
+		displayFolder: 7. P&L Statement
+
+	/// Variance to budget for the P&L Line on rows as a share of the absolute budget. Positive is favourable on every line.
+	measure 'P&L Var to Budget %' = DIVIDE ( [P&L Var to Budget], ABS ( [P&L Budget] ) )
+		formatString: #,0.0%;-#,0.0%;#,0.0%
+		displayFolder: 7. P&L Statement
+
+	/// Actual for the same period one year earlier (like for like) for the P&L Line on rows, in the same presentation as P&L Value: costs are positive, subtotals are profits. Blank unless exactly one P&L Line is in scope.
+	measure 'P&L Actual PY' =
+			SWITCH (
+			    SELECTEDVALUE ( 'P&L Line'[Line Key] ),
+			    1, CALCULATE ( [Actual PY], KEEPFILTERS ( 'Account'[P&L Group L1] = "Revenue" ) ),
+			    2, -1 * CALCULATE ( [Actual PY], KEEPFILTERS ( 'Account'[P&L Group L1] = "Cost of Sales" ) ),
+			    3, CALCULATE ( [Actual PY], KEEPFILTERS ( 'Account'[P&L Group L1] IN { "Revenue", "Cost of Sales" } ) ),
+			    4, -1 * CALCULATE ( [Actual PY], KEEPFILTERS ( 'Account'[P&L Group L1] = "Operating Expenses" ) ),
+			    5, CALCULATE ( [Actual PY], KEEPFILTERS ( 'Account'[In EBITDA] = 1 ) ),
+			    6, -1 * CALCULATE ( [Actual PY], KEEPFILTERS ( 'Account'[P&L Group L1] = "Depreciation and Amortisation" ) ),
+			    7, CALCULATE ( [Actual PY], KEEPFILTERS ( 'Account'[P&L Group L1] IN { "Revenue", "Cost of Sales", "Operating Expenses", "Depreciation and Amortisation" } ) ),
+			    8, -1 * CALCULATE ( [Actual PY], KEEPFILTERS ( 'Account'[P&L Group L1] = "Finance Items" ) ),
+			    9, CALCULATE ( [Actual PY], KEEPFILTERS ( 'Account'[P&L Group L1] <> "Tax" ) ),
+			    10, -1 * CALCULATE ( [Actual PY], KEEPFILTERS ( 'Account'[P&L Group L1] = "Tax" ) ),
+			    11, [Actual PY]
+			)
+		formatString: #,0
+		displayFolder: 7. P&L Statement
 
 	column Value
 		dataType: int64
