@@ -18,7 +18,8 @@
                   "Property": "Entity Name"
                 }
               },
-              "nativeQueryRef": "Entity Name"
+              "nativeQueryRef": "Entity Name",
+              "displayName": "Entity"
             },
             {
               "queryRef": "_Measures.Revenue",
@@ -46,7 +47,8 @@
                   "Property": "Revenue Var to Budget"
                 }
               },
-              "nativeQueryRef": "Revenue Var to Budget"
+              "nativeQueryRef": "Revenue Var to Budget",
+              "displayName": "Revenue variance"
             },
             {
               "queryRef": "_Measures.EBITDA",
@@ -74,21 +76,8 @@
                   "Property": "EBITDA Var to Budget"
                 }
               },
-              "nativeQueryRef": "EBITDA Var to Budget"
-            },
-            {
-              "queryRef": "_Measures.EBITDA Margin %",
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Measures"
-                    }
-                  },
-                  "Property": "EBITDA Margin %"
-                }
-              },
-              "nativeQueryRef": "EBITDA Margin %"
+              "nativeQueryRef": "EBITDA Var to Budget",
+              "displayName": "EBITDA variance"
             }
           ]
         }
@@ -142,6 +131,19 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Table of revenue, EBITDA, their variances to budget and EBITDA margin by entity'"
                 }
               }
             }

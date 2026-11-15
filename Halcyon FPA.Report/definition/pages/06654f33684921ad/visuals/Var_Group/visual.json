@@ -18,7 +18,8 @@
                   "Property": "P&L Group L2"
                 }
               },
-              "nativeQueryRef": "P&L Group L2"
+              "nativeQueryRef": "P&L Group L2",
+              "displayName": "P&L group"
             }
           ]
         },
@@ -36,7 +37,8 @@
                   "Property": "Var to Budget"
                 }
               },
-              "nativeQueryRef": "Var to Budget"
+              "nativeQueryRef": "Var to Budget",
+              "displayName": "Variance"
             }
           ]
         }
@@ -175,6 +177,19 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Bar chart of variance to budget by P&L group, most adverse first; orange bars are adverse, blue bars favourable'"
                 }
               }
             }

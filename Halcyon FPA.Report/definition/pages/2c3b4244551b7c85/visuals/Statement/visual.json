@@ -36,7 +36,8 @@
                   "Property": "P&L Value"
                 }
               },
-              "nativeQueryRef": "P&L Value"
+              "nativeQueryRef": "P&L Value",
+              "displayName": "Actual"
             },
             {
               "queryRef": "_Measures.P&L Budget",
@@ -50,7 +51,8 @@
                   "Property": "P&L Budget"
                 }
               },
-              "nativeQueryRef": "P&L Budget"
+              "nativeQueryRef": "P&L Budget",
+              "displayName": "Budget"
             },
             {
               "queryRef": "_Measures.P&L Var to Budget",
@@ -64,7 +66,8 @@
                   "Property": "P&L Var to Budget"
                 }
               },
-              "nativeQueryRef": "P&L Var to Budget"
+              "nativeQueryRef": "P&L Var to Budget",
+              "displayName": "Variance"
             },
             {
               "queryRef": "_Measures.P&L Var to Budget %",
@@ -78,7 +81,8 @@
                   "Property": "P&L Var to Budget %"
                 }
               },
-              "nativeQueryRef": "P&L Var to Budget %"
+              "nativeQueryRef": "P&L Var to Budget %",
+              "displayName": "Variance %"
             },
             {
               "queryRef": "_Measures.P&L Actual PY",
@@ -92,7 +96,8 @@
                   "Property": "P&L Actual PY"
                 }
               },
-              "nativeQueryRef": "P&L Actual PY"
+              "nativeQueryRef": "P&L Actual PY",
+              "displayName": "Prior year"
             }
           ]
         }
@@ -116,7 +121,21 @@
         "isDefaultSort": true
       }
     },
-    "objects": {},
+    "objects": {
+      "subTotals": [
+        {
+          "properties": {
+            "rowSubtotals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "drillFilterOtherVisuals": true,
     "visualContainerObjects": {
       "title": [
@@ -146,6 +165,19 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'P&L statement from revenue to net profit with actual, budget, variance, variance percent and prior year'"
                 }
               }
             }

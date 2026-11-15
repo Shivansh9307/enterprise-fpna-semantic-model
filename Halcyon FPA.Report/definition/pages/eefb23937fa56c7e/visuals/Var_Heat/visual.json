@@ -18,7 +18,8 @@
                   "Property": "P&L Group L2"
                 }
               },
-              "nativeQueryRef": "P&L Group L2"
+              "nativeQueryRef": "P&L Group L2",
+              "displayName": "P&L group"
             }
           ]
         },
@@ -54,7 +55,8 @@
                   "Property": "Var to Budget %"
                 }
               },
-              "nativeQueryRef": "Var to Budget %"
+              "nativeQueryRef": "Var to Budget %",
+              "displayName": "Variance %"
             }
           ]
         }
@@ -190,14 +192,27 @@
             }
           }
         }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Matrix of variance to budget percent by P&L group and month; orange cells are adverse, blue cells favourable'"
+                }
+              }
+            }
+          }
+        }
       ]
     }
   },
   "position": {
-    "x": 520,
+    "x": 24,
     "y": 84,
-    "width": 736,
-    "height": 300,
+    "width": 1232,
+    "height": 264,
     "z": 0,
     "tabOrder": 0
   },

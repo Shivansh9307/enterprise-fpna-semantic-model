@@ -269,7 +269,7 @@
         ],
         "dropShadow": [
           {
-            "show": true,
+            "show": false,
             "preset": "Center",
             "angle": 0,
             "color": {
@@ -854,6 +854,11 @@
             "show": false,
             "enableValueDataLabel": false
           }
+        ],
+        "lineStyles": [
+          {
+            "areaShow": false
+          }
         ]
       }
     },
@@ -916,6 +921,11 @@
           {
             "backgroundTransparency": 0,
             "gridLineType": "inner"
+          }
+        ],
+        "lineStyles": [
+          {
+            "areaShow": false
           }
         ]
       }
@@ -1152,6 +1162,21 @@
           }
         ],
         "divider": [
+          {
+            "show": false
+          }
+        ],
+        "background": [
+          {
+            "show": false
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "dropShadow": [
           {
             "show": false
           }

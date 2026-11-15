@@ -3,9 +3,9 @@
   "name": "4c593ecbb94c28fc",
   "position": {
     "x": 24,
-    "y": 12,
+    "y": 8,
     "width": 480,
-    "height": 56,
+    "height": 68,
     "z": 0
   },
   "visual": {
@@ -64,6 +64,19 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Page title: Forecast and FX'"
                 }
               }
             }

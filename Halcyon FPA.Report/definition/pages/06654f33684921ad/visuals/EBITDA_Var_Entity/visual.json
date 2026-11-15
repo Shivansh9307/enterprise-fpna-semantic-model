@@ -18,7 +18,8 @@
                   "Property": "Entity Name"
                 }
               },
-              "nativeQueryRef": "Entity Name"
+              "nativeQueryRef": "Entity Name",
+              "displayName": "Entity"
             }
           ]
         },
@@ -36,7 +37,8 @@
                   "Property": "EBITDA Var to Budget"
                 }
               },
-              "nativeQueryRef": "EBITDA Var to Budget"
+              "nativeQueryRef": "EBITDA Var to Budget",
+              "displayName": "EBITDA variance"
             }
           ]
         }
@@ -175,6 +177,19 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Bar chart of EBITDA variance to budget by entity; orange bars are adverse, blue bars favourable'"
                 }
               }
             }

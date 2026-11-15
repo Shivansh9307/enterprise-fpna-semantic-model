@@ -127,6 +127,19 @@
             }
           }
         }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Full-year revenue forecast against full-year budget, with the percentage gap'"
+                }
+              }
+            }
+          }
+        }
       ]
     }
   },

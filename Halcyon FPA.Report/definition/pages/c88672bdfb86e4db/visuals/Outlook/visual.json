@@ -50,7 +50,8 @@
                   "Property": "Forecast Remaining"
                 }
               },
-              "nativeQueryRef": "Forecast Remaining"
+              "nativeQueryRef": "Forecast Remaining",
+              "displayName": "Forecast"
             }
           ]
         },
@@ -122,6 +123,19 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Column and line chart of monthly EBITDA: actual columns, forecast columns for the remaining months, and a budget line'"
                 }
               }
             }

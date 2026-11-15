@@ -140,6 +140,19 @@
             }
           }
         }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Revenue at actual exchange rates against the same revenue at prior-year rates, showing the currency effect'"
+                }
+              }
+            }
+          }
+        }
       ]
     }
   },

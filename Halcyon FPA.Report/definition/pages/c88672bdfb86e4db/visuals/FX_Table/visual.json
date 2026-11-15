@@ -18,7 +18,8 @@
                   "Property": "Entity Name"
                 }
               },
-              "nativeQueryRef": "Entity Name"
+              "nativeQueryRef": "Entity Name",
+              "displayName": "Entity"
             },
             {
               "queryRef": "Entity.Currency",
@@ -60,7 +61,8 @@
                   "Property": "Actual PY"
                 }
               },
-              "nativeQueryRef": "Actual PY"
+              "nativeQueryRef": "Actual PY",
+              "displayName": "Prior year"
             },
             {
               "queryRef": "_Measures.YoY %",
@@ -74,7 +76,8 @@
                   "Property": "YoY %"
                 }
               },
-              "nativeQueryRef": "YoY %"
+              "nativeQueryRef": "YoY %",
+              "displayName": "Growth"
             },
             {
               "queryRef": "_Measures.YoY % CC",
@@ -88,7 +91,8 @@
                   "Property": "YoY % CC"
                 }
               },
-              "nativeQueryRef": "YoY % CC"
+              "nativeQueryRef": "YoY % CC",
+              "displayName": "Growth at constant currency"
             },
             {
               "queryRef": "_Measures.FX Impact YoY",
@@ -102,7 +106,8 @@
                   "Property": "FX Impact YoY"
                 }
               },
-              "nativeQueryRef": "FX Impact YoY"
+              "nativeQueryRef": "FX Impact YoY",
+              "displayName": "FX impact on growth"
             },
             {
               "queryRef": "_Measures.Var to Budget",
@@ -116,7 +121,8 @@
                   "Property": "Var to Budget"
                 }
               },
-              "nativeQueryRef": "Var to Budget"
+              "nativeQueryRef": "Var to Budget",
+              "displayName": "Variance"
             },
             {
               "queryRef": "_Measures.FX Var to Budget",
@@ -130,7 +136,8 @@
                   "Property": "FX Var to Budget"
                 }
               },
-              "nativeQueryRef": "FX Var to Budget"
+              "nativeQueryRef": "FX Var to Budget",
+              "displayName": "FX variance"
             },
             {
               "queryRef": "_Measures.Operational Var to Budget",
@@ -144,7 +151,8 @@
                   "Property": "Operational Var to Budget"
                 }
               },
-              "nativeQueryRef": "Operational Var to Budget"
+              "nativeQueryRef": "Operational Var to Budget",
+              "displayName": "Operational variance"
             }
           ]
         }
@@ -198,6 +206,19 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Table of revenue by entity with prior year, growth, constant-currency growth, FX impact, and variance to budget split into FX and operations'"
                 }
               }
             }

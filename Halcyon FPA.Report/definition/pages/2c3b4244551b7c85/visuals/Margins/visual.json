@@ -36,7 +36,8 @@
                   "Property": "Gross Margin %"
                 }
               },
-              "nativeQueryRef": "Gross Margin %"
+              "nativeQueryRef": "Gross Margin %",
+              "displayName": "Gross margin"
             },
             {
               "queryRef": "_Measures.EBITDA Margin %",
@@ -50,7 +51,8 @@
                   "Property": "EBITDA Margin %"
                 }
               },
-              "nativeQueryRef": "EBITDA Margin %"
+              "nativeQueryRef": "EBITDA Margin %",
+              "displayName": "EBITDA margin"
             }
           ]
         }
@@ -104,6 +106,19 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Line chart of gross margin and EBITDA margin by month'"
                 }
               }
             }

@@ -113,6 +113,19 @@
             }
           }
         }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Revenue year to date against budget year to date, with the percentage gap'"
+                }
+              }
+            }
+          }
+        }
       ]
     }
   },

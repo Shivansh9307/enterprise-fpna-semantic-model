@@ -113,6 +113,19 @@
             }
           }
         }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'EBITDA year to date against budget year to date, with the percentage gap'"
+                }
+              }
+            }
+          }
+        }
       ]
     }
   },

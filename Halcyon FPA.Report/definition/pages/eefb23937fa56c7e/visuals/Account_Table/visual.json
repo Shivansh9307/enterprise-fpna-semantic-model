@@ -18,7 +18,8 @@
                   "Property": "Account Name"
                 }
               },
-              "nativeQueryRef": "Account Name"
+              "nativeQueryRef": "Account Name",
+              "displayName": "Account"
             },
             {
               "queryRef": "_Measures.Actual",
@@ -46,7 +47,8 @@
                   "Property": "Budget (Closed Periods)"
                 }
               },
-              "nativeQueryRef": "Budget (Closed Periods)"
+              "nativeQueryRef": "Budget (Closed Periods)",
+              "displayName": "Budget"
             },
             {
               "queryRef": "_Measures.Var to Budget",
@@ -60,7 +62,8 @@
                   "Property": "Var to Budget"
                 }
               },
-              "nativeQueryRef": "Var to Budget"
+              "nativeQueryRef": "Var to Budget",
+              "displayName": "Variance"
             },
             {
               "queryRef": "_Measures.Var to Budget %",
@@ -74,7 +77,8 @@
                   "Property": "Var to Budget %"
                 }
               },
-              "nativeQueryRef": "Var to Budget %"
+              "nativeQueryRef": "Var to Budget %",
+              "displayName": "Variance %"
             }
           ]
         }
@@ -133,14 +137,27 @@
             }
           }
         }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Table of accounts with actual, budget, variance and variance percent, most adverse variance first'"
+                }
+              }
+            }
+          }
+        }
       ]
     }
   },
   "position": {
-    "x": 520,
-    "y": 400,
-    "width": 736,
-    "height": 296,
+    "x": 792,
+    "y": 364,
+    "width": 464,
+    "height": 332,
     "z": 0,
     "tabOrder": 0
   },

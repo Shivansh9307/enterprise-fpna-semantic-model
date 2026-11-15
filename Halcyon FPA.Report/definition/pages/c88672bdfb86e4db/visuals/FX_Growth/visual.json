@@ -18,7 +18,8 @@
                   "Property": "Entity Code"
                 }
               },
-              "nativeQueryRef": "Entity Code"
+              "nativeQueryRef": "Entity Code",
+              "displayName": "Entity"
             }
           ]
         },
@@ -36,7 +37,8 @@
                   "Property": "YoY %"
                 }
               },
-              "nativeQueryRef": "YoY %"
+              "nativeQueryRef": "YoY %",
+              "displayName": "Growth"
             },
             {
               "queryRef": "_Measures.YoY % CC",
@@ -50,7 +52,8 @@
                   "Property": "YoY % CC"
                 }
               },
-              "nativeQueryRef": "YoY % CC"
+              "nativeQueryRef": "YoY % CC",
+              "displayName": "Growth at constant currency"
             }
           ]
         }
@@ -104,6 +107,19 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Bar chart of revenue growth by entity, reported against constant currency'"
                 }
               }
             }

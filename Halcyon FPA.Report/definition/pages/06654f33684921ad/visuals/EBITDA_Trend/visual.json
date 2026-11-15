@@ -109,6 +109,19 @@
             }
           }
         }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Line chart of monthly EBITDA, actual against budget'"
+                }
+              }
+            }
+          }
+        }
       ]
     }
   },

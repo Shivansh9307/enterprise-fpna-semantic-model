@@ -43,7 +43,22 @@
       }
     },
     "objects": {},
-    "drillFilterOtherVisuals": true
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Report context: fiscal year, last month with actuals, entities in scope, currency, and a note that the data is synthetic'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   },
   "position": {
     "x": 520,

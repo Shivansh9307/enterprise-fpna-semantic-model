@@ -36,7 +36,8 @@
                   "Property": "Var to Budget"
                 }
               },
-              "nativeQueryRef": "Var to Budget"
+              "nativeQueryRef": "Var to Budget",
+              "displayName": "Variance"
             }
           ]
         }
@@ -180,14 +181,27 @@
             }
           }
         }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Bar chart of variance to budget by department, most adverse first'"
+                }
+              }
+            }
+          }
+        }
       ]
     }
   },
   "position": {
-    "x": 24,
-    "y": 400,
-    "width": 480,
-    "height": 296,
+    "x": 408,
+    "y": 364,
+    "width": 368,
+    "height": 332,
     "z": 0,
     "tabOrder": 0
   },
