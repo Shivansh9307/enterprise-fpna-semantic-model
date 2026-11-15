@@ -383,6 +383,83 @@ def check_statement(name, frames):
     return failed
 
 
+CUSTOMER_FILES = {  # result file -> (context column, context kind, entity filter, group by segment)
+    "stage6_03_customers_yearly": ("Year", "year", None, False),
+    "stage6_04_customers_monthly_us01": ("Year Month Key", "month", "US01", False),
+    "stage6_05_customers_by_segment": ("Year", "year", None, True),
+}
+
+
+def customer_measures(ctx, lines, last_actual):
+    """Customer and ledger-quality measures for a list of months, from ledger lines already cut to the slice."""
+    closed = [m for m in ctx if m <= last_actual]
+    cur = lines[lines.month.isin(ctx)]
+    prior = lines[lines.month.isin([m - 12 for m in closed])]
+    is_rev = lambda d: d[(d.PLGroupL1 == "Revenue") & d.CustomerKey.notna()]
+    rev, rev_prior = is_rev(cur), is_rev(prior)
+    blank = lambda v: v if v else None  # the model returns blank, not zero, when nothing is in scope
+    out = {"Revenue": blank(cur[cur.PLGroupL1 == "Revenue"].gbp.sum()) if len(cur[cur.PLGroupL1 == "Revenue"]) else None}
+    out["Active Customers"] = blank(rev.CustomerKey.nunique())
+    out["Active Customers PY"] = blank(rev_prior.CustomerKey.nunique())
+    out["Revenue per Customer"] = out["Revenue"] / out["Active Customers"] if out["Active Customers"] else None
+    prior_revenue = prior[prior.PLGroupL1 == "Revenue"].gbp.sum() if len(prior[prior.PLGroupL1 == "Revenue"]) else None
+    out["Revenue per Customer PY"] = prior_revenue / out["Active Customers PY"] if out["Active Customers PY"] and prior_revenue is not None else None
+    if min(ctx).year > 2024:
+        new = rev[rev.StartMonth.dt.to_period("M").isin(ctx)]
+        out["New Customers"] = blank(new.CustomerKey.nunique())
+        out["New Customer Revenue"] = float(new.gbp.sum()) if len(new) else None
+    else:
+        out["New Customers"] = out["New Customer Revenue"] = None
+    by_customer = rev.groupby("CustomerKey").gbp.sum().sort_values(ascending=False)
+    if len(by_customer) and out["Revenue"]:
+        cutoff = by_customer.iloc[min(10, len(by_customer)) - 1]
+        out["Top 10 Customer Revenue %"] = float(by_customer[by_customer >= cutoff].sum()) / out["Revenue"]  # ties with the tenth are kept, as TOPN does
+    else:
+        out["Top 10 Customer Revenue %"] = None
+    out["Journal Lines"] = blank(len(cur))
+    out["Adjustment Lines"] = blank(int((cur.IsAdjustment == 1).sum()))
+    out["Adjustment Lines %"] = out["Adjustment Lines"] / out["Journal Lines"] if out["Adjustment Lines"] and out["Journal Lines"] else None
+    late = cur[cur.PostingDate > cur.PeriodDate + pd.offsets.MonthEnd(0)]
+    out["Late Adjustments"] = float(late.gbp.sum()) if len(late) else None
+    return out
+
+
+def check_customers(name, frames):
+    key_col, kind, entity, by_segment = CUSTOMER_FILES[name]
+    actual = frames[0]
+    cust = pd.read_csv(DATA / "Dim_Customer.csv", parse_dates=["StartMonth"])[["CustomerKey", "Segment", "StartMonth"]]
+    lines = actual.merge(cust, on="CustomerKey", how="left")
+    lines["Segment"] = lines["Segment"].fillna("Not applicable")  # the -1 "No customer" row
+    assert len(lines) == len(actual)
+    last_actual = max(lines.month)
+    if entity:
+        lines = lines[lines.EntityCode == entity]
+    dax = pd.read_csv(RESULTS / f"{name}.csv")
+    compared = failed = 0
+    problems = []
+    for _, row in dax.iterrows():
+        cut = lines[lines.Segment == row["Segment"]] if by_segment else lines
+        label = f"{row['Segment']} | {row[key_col]}" if by_segment else row[key_col]
+        for m, want in customer_measures(context(kind, row[key_col]), cut, last_actual).items():
+            got = None if pd.isna(row[m]) else float(row[m])
+            compared += 1
+            if differs(m, got, None if want is None else float(want)):
+                failed += 1
+                problems.append(f"    {label} | {m}: model {got} vs pandas {want}")
+    segments = sorted(lines.Segment.unique()) if by_segment else [None]
+    for seg in segments:  # every context pandas can compute must be present in the model output
+        cut = lines[lines.Segment == seg] if by_segment else lines
+        for k in ALL_KEYS[kind]:
+            have = ((dax[key_col] == k) & ((dax["Segment"] == seg) if by_segment else True)).any()
+            if not have and any(v is not None for v in customer_measures(context(kind, k), cut, last_actual).values()):
+                failed += 1
+                problems.append(f"    {seg or ''} {k}: row missing from the model output")
+    print(f"{'PASS' if not failed else 'FAIL'}  {name}: {len(dax)} rows, {compared} values compared, {failed} failed")
+    if problems:
+        print("\n".join(problems[:15]))
+    return failed
+
+
 HEADLINES = ["revenue_gbp", "cost_of_sales_gbp", "gross_profit_gbp", "gross_margin_pct", "ebitda_gbp", "ebitda_margin_pct"]
 
 
@@ -446,6 +523,9 @@ def main():
             print("--- stage 6: P&L statement measures against pandas (synthetic GBP)")
             for name in STATEMENT_FILES:
                 failed += check_statement(name, frames)
+            print("--- stage 6: customer and ledger-quality measures against pandas (synthetic GBP)")
+            for name in CUSTOMER_FILES:
+                failed += check_customers(name, frames)
     print(f"\n{'ALL CHECKS PASSED' if not failed else str(failed) + ' CHECK(S) FAILED'}")
     return 1 if failed else 0
 

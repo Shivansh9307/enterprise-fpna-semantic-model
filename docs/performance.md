@@ -142,6 +142,10 @@ Left as they are, on purpose:
 
 After the changes the model was reloaded and every check from stages 1 to 4 was rerun: 66 of 66 pass.
 
+The analysis was rerun on the final model (75 measures, after `Journal ID` was removed and the statement, customer and
+ledger-quality measures were added): 41 findings, the same kinds as above. The one new finding is the text measure
+`Report Context`, which has no number format because it returns text.
+
 ## Not run
 
 - Report best-practice analysis (`pbir bpa`): the report has no visuals yet. It belongs to stage 6.

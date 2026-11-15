@@ -1,0 +1,20 @@
+// Customer and ledger-quality measures by month, entity US01. Synthetic GBP.
+// Compared with an independent pandas recomputation by tools/verify_measures.py.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Date'[Year Month Key],
+    TREATAS ( { "US01" }, 'Entity'[Entity Code] ),
+    "Revenue", [Revenue],
+    "Active Customers", [Active Customers],
+    "Active Customers PY", [Active Customers PY],
+    "Revenue per Customer", [Revenue per Customer],
+    "Revenue per Customer PY", [Revenue per Customer PY],
+    "New Customers", [New Customers],
+    "New Customer Revenue", [New Customer Revenue],
+    "Top 10 Customer Revenue %", [Top 10 Customer Revenue %],
+    "Journal Lines", [Journal Lines],
+    "Adjustment Lines", [Adjustment Lines],
+    "Adjustment Lines %", [Adjustment Lines %],
+    "Late Adjustments", [Late Adjustments]
+)
+ORDER BY 'Date'[Year Month Key]

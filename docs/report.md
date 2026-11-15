@@ -15,11 +15,14 @@ no report file was edited by hand.
 
 ## Pages (1280 x 720)
 
+The pages appear in the report in this order: Overview, P&L Statement, Variance Drivers, Forecast and FX, Customers.
+
 | Page | Answers | Visuals |
 |---|---|---|
 | Overview | Are we on track against budget? | Four KPIs (revenue, gross profit, EBITDA, net profit, year to date against budget), monthly EBITDA actual and budget, EBITDA variance by entity, variance by P&L group, entity table |
 | P&L Statement | What does the P&L look like line by line? | Statement from revenue to net profit with actual, budget, variance, variance % and prior year; margins by month; actuals by entity |
 | Variance Drivers | Which lines drive the gap, and when? | Variance % by P&L group and month (heat matrix), variance by P&L group and by department, accounts ranked by adverse variance |
+| Customers | Who is the revenue coming from? | Active customers and revenue per customer against prior year, revenue from new customers, top-10 share of revenue, new customers by month, revenue by segment and by industry, the fifteen largest customers |
 | Forecast and FX | Where will the year land, and how much is FX? | Full-year forecast KPIs against budget, monthly EBITDA outlook, reported against constant-currency revenue growth, entity table splitting growth and budget variance into FX and operations |
 
 The KPI and trend visuals use the generic measures (`Actual YTD`, `Budget YTD`, `Forecast FY`, `Actual`, `Budget`) with a
@@ -29,22 +32,22 @@ visual-level filter on the account group. That keeps the model free of one measu
 
 | Check | Result |
 |---|---|
-| `pbir validate --all` (structure, schema, fields against the model, layout) | Passes, no errors. 26 warnings, all listed below as deliberate |
-| `pbir bpa run` (report best-practice analysis) | 83 findings before fixes, 35 after, no errors |
-| Screenshots of all four pages, captured from Power BI Desktop through `pbir desktop screenshot` | Reviewed against the checked numbers, below |
+| `pbir validate --all` (structure, schema, fields against the model, layout) | Passes, no errors. 33 warnings, all of the kinds listed below as deliberate |
+| `pbir bpa run` (report best-practice analysis) | 83 findings on the first four pages before fixes, 35 after; 44 with the Customers page added, no errors |
+| Screenshots of all five pages, captured from Power BI Desktop through `pbir desktop screenshot` | Reviewed against the checked numbers, below |
 
-Fixed after the first best-practice run: alt text added to all 30 visuals (26 findings), drop shadows switched off in the
+Fixed after the first best-practice run: alt text added to every visual (40 across five pages), drop shadows switched off in the
 theme (22 findings).
 
 Left as they are, on purpose:
 
 | Finding | Count | Reason |
 |---|---:|---|
-| Visual undersized | 12 | The KPIs are 124 px high so that four fit above the charts. They render without clipping in the screenshots |
-| Visual-level filters | 10 | The design choice described above: generic measures filtered per visual |
-| Missing title | 4 | The header line on each page is a card without a title; it has alt text |
-| Oversized card | 4 | The same header line, deliberately wide |
-| Too many fields | 4 | The detail tables |
+| Visual undersized | 17 | The KPIs are 124 px high so that four fit above the charts. They render without clipping in the screenshots |
+| Visual-level filters | 11 | The design choice described above: generic measures filtered per visual |
+| Missing title | 5 | The header line on each page is a card without a title; it has alt text |
+| Oversized card | 5 | The same header line, deliberately wide |
+| Too many fields | 5 | The detail tables |
 | Hard-coded colour | 1 | White as the midpoint of the variance heat gradient |
 
 ## Screenshot review against the checked numbers (FY2026, synthetic GBP)
@@ -60,9 +63,10 @@ Left as they are, on purpose:
 | Variance Drivers | Account table total: 6,409,505 actual, 11,025,681 budget, -4,616,176 variance | Same values in the stage 2 yearly grid |
 | Forecast and FX | EBITDA full-year forecast 12.1M against budget 17.8M, -32% | 12,106,346 and 17,820,807 (stage 3 yearly EBITDA grid) |
 | Forecast and FX | Net profit full-year forecast 8.7M against budget 14.4M | 8,656,328 and 14,396,793 |
+| Customers | 2,308 active customers against 1,900 in the prior year; revenue per customer 22.6K against 22.4K; revenue from new customers 12.0M; top-10 share 6.6% | 2,308 and 1,900; 22,571 and 22,373; 12,009,046; 6.64% (`tests/results/stage6_03_customers_yearly.csv`, which matches pandas) |
 | Forecast and FX | US01 revenue: growth 21.6%, at constant currency 31.7%, FX impact -1,741,441, FX variance 152,186, operational variance -1,317,730 | Same values in the stage 3 US01 revenue grid (planted story 6) |
 
-Screenshots are written to `screenshots/`, which is not committed.
+The final captures are in `screenshots/` and are embedded in the README.
 
 ## Not run
 

@@ -517,6 +517,110 @@ table _Measures
 			    _Years & "  |  Actuals to " & FORMAT ( [Last Actual Period], "mmm yyyy" ) & "  |  " & _Entities & "  |  GBP  |  Synthetic data"
 		displayFolder: 8. Report
 
+	/// Number of distinct customers with revenue lines in the period. Excludes the "No customer" row that carries non-revenue lines.
+	measure 'Active Customers' =
+			CALCULATE (
+			    DISTINCTCOUNT ( 'GL'[Customer Key] ),
+			    KEEPFILTERS ( 'Customer'[Customer Key] <> -1 ),
+			    KEEPFILTERS ( 'Account'[P&L Group L1] = "Revenue" )
+			)
+		formatString: #,0
+		displayFolder: 9. Customers
+
+	/// Active customers in the same period one year earlier, like for like: only the dates that have actuals in the current period are shifted back.
+	measure 'Active Customers PY' =
+			CALCULATE (
+			    [Active Customers],
+			    CALCULATETABLE ( DATEADD ( 'Date'[Date], -1, YEAR ), 'Date'[Has Actuals] = TRUE )
+			)
+		formatString: #,0
+		displayFolder: 9. Customers
+
+	/// Revenue in GBP divided by the number of active customers in the period.
+	measure 'Revenue per Customer' = DIVIDE ( [Revenue], [Active Customers] )
+		formatString: #,0
+		displayFolder: 9. Customers
+
+	/// Revenue per active customer in the same period one year earlier, like for like.
+	measure 'Revenue per Customer PY' =
+			DIVIDE (
+			    CALCULATE ( [Actual PY], KEEPFILTERS ( 'Account'[P&L Group L1] = "Revenue" ) ),
+			    [Active Customers PY]
+			)
+		formatString: #,0
+		displayFolder: 9. Customers
+
+	/// Number of customers whose first month in the data falls in the period and who have revenue in it. Blank for periods that start in 2024, because customers that predate the data all show January 2024 as their start month.
+	measure 'New Customers' =
+			VAR _First = MIN ( 'Date'[Date] )
+			VAR _Last = MAX ( 'Date'[Date] )
+			VAR _DataStart = CALCULATE ( MIN ( 'Date'[Date] ), REMOVEFILTERS ( ) )
+			RETURN
+			    IF (
+			        YEAR ( _First ) > YEAR ( _DataStart ),
+			        CALCULATE (
+			            [Active Customers],
+			            KEEPFILTERS ( 'Customer'[Start Month] >= _First && 'Customer'[Start Month] <= _Last )
+			        )
+			    )
+		formatString: #,0
+		displayFolder: 9. Customers
+
+	/// Revenue in GBP in the period from customers whose first month in the data falls in the period. Blank for periods that start in 2024, for the same reason as New Customers.
+	measure 'New Customer Revenue' =
+			VAR _First = MIN ( 'Date'[Date] )
+			VAR _Last = MAX ( 'Date'[Date] )
+			VAR _DataStart = CALCULATE ( MIN ( 'Date'[Date] ), REMOVEFILTERS ( ) )
+			RETURN
+			    IF (
+			        YEAR ( _First ) > YEAR ( _DataStart ),
+			        CALCULATE (
+			            [Revenue],
+			            KEEPFILTERS ( 'Customer'[Start Month] >= _First && 'Customer'[Start Month] <= _Last )
+			        )
+			    )
+		formatString: #,0
+		displayFolder: 9. Customers
+
+	/// Share of revenue that comes from the ten largest customers in the current filter context. A measure of customer concentration.
+	measure 'Top 10 Customer Revenue %' =
+			VAR _Customers =
+			    CALCULATETABLE ( VALUES ( 'Customer'[Customer Key] ), KEEPFILTERS ( 'Customer'[Customer Key] <> -1 ) )
+			VAR _Top = TOPN ( 10, ADDCOLUMNS ( _Customers, "@Revenue", [Revenue] ), [@Revenue], DESC )
+			RETURN
+			    DIVIDE ( SUMX ( _Top, [@Revenue] ), [Revenue] )
+		formatString: #,0.0%;-#,0.0%;#,0.0%
+		displayFolder: 9. Customers
+
+	/// Number of ledger lines in the period.
+	measure 'Journal Lines' = COUNTROWS ( 'GL' )
+		formatString: #,0
+		displayFolder: 10. Ledger Quality
+
+	/// Number of ledger lines flagged as adjustments: late adjustments, and reversal and rebook pairs.
+	measure 'Adjustment Lines' = CALCULATE ( COUNTROWS ( 'GL' ), KEEPFILTERS ( 'GL'[Is Adjustment] = TRUE ) )
+		formatString: #,0
+		displayFolder: 10. Ledger Quality
+
+	/// Adjustment lines as a share of all ledger lines in the period.
+	measure 'Adjustment Lines %' = DIVIDE ( [Adjustment Lines], [Journal Lines] )
+		formatString: #,0.0%;-#,0.0%;#,0.0%
+		displayFolder: 10. Ledger Quality
+
+	/// Amount in GBP, profit-impact sign, of ledger lines posted after the end of their accounting month. Shows how much of a period arrived late.
+	measure 'Late Adjustments' =
+			CALCULATE (
+			    [Actual],
+			    KEEPFILTERS (
+			        FILTER (
+			            ALL ( 'GL'[Posting Date], 'GL'[Period Date] ),
+			            'GL'[Posting Date] > EOMONTH ( 'GL'[Period Date], 0 )
+			        )
+			    )
+			)
+		formatString: #,0
+		displayFolder: 10. Ledger Quality
+
 	column Value
 		dataType: int64
 		isHidden
