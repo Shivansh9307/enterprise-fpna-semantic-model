@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synthetic FP&A dataset for the halcyon-fpa-powerbi project.
+"""Synthetic FP&A dataset for the enterprise-fpna-semantic-model project.
 
 EVERYTHING HERE IS FICTIONAL. "Halcyon Group" does not exist; no figure is a real company's data.
 
