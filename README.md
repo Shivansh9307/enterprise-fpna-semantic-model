@@ -269,12 +269,12 @@ EBITDA variance to budget -673,615 for FY2026 to October.
 
 ![Overview page viewed as the Entity Finance role](screenshots/view-as-entity-finance.png)
 
-*Overview viewed as `Entity Finance`, user `de.fpa@halcyon.example`. Synthetic data. Captured before the header fix described below.*
+*Overview viewed as `Entity Finance`, user `de.fpa@halcyon.example`. Synthetic data.*
 
-This check also found something the queries could not. The header line on the page still read "All entities" for a user
-who could see one. The measure behind it asked whether the entity table was filtered, and a security filter does not count
-as a filter in that sense. I changed the measure to list the entities the reader can actually see, and confirmed by query
-that it now returns "DE01" for the German analyst and "DE01, UK01" for the EMEA role.
+This check also found something the queries could not. On the first viewing, the header line on the page read "All entities"
+for a user who could see one. The measure behind it asked whether the entity table was filtered, and a security filter does
+not count as a filter in that sense. I changed the measure to list the entities the reader can actually see. The capture
+above was taken after the change and reads "DE01"; by query the EMEA role gets "DE01, UK01".
 
 **Not run:** the other roles and users in the Desktop window (they were tested by query only), and any test in the Power BI
 service, where role membership is assigned.
@@ -343,7 +343,6 @@ I would rather list this than have a reader find it.
 
 - **Nothing was published to the Power BI service.** Refresh there, role membership, and behaviour in the browser are untested.
 - **"View as" in the Desktop window was run for one role and one user.** The other ten security cases were tested by query only.
-- **The page screenshots predate the header fix.** They show "All entities" in the header line where the report now lists the entity codes.
 - **One data scale.** Timings and the conversion decision were tested on 307,697 ledger lines only.
 - **One year on the pages.** The pages work for any year, but I reviewed the screenshots for FY2026 only. Forecast visuals are blank for years without a forecast.
 - **The pages were not viewed as a restricted role.** The roles were tested on the model, not on the rendered pages.

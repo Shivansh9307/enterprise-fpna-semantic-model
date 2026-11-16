@@ -74,9 +74,8 @@ The final captures are in `screenshots/` and are embedded in the README.
 - The pages under most security roles. One case was viewed in Power BI Desktop with "View as": `Entity Finance` as
   `de.fpa@halcyon.example`, on the Overview page (`screenshots/view-as-entity-finance.png`). It showed the German entity only,
   with revenue 7,752,582, EBITDA 3,892,455 and EBITDA variance to budget -673,615 for FY2026, the same as the query test for
-  that role and user. The other ten cases were tested by DAX queries only.
-- The header line after its fix, on a rendered page. The "View as" check showed the header reading "All entities" for a
-  restricted user. The `Report Context` measure now lists the visible entity codes, confirmed by query under two roles
-  ("DE01" and "DE01, UK01"). The committed screenshots were taken before the change and still show "All entities".
+  that role and user. The other ten cases were tested by DAX queries only. The first viewing showed the header line reading
+  "All entities" for this restricted user; the `Report Context` measure now lists the visible entity codes, and the capture,
+  retaken after the change, reads "DE01". All page screenshots were retaken with the new header.
 - Other years than 2026. The pages work for any year, but only the 2026 view was reviewed. Forecast visuals are blank for years without a forecast.
 - Timings of the real visuals. Stage 5 timed stand-in queries before the pages existed.
